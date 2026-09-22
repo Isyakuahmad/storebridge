@@ -1,0 +1,13 @@
+services:
+  web:
+    build: {context: ., dockerfile: Dockerfile}
+    ports: ["80:80"]
+    volumes: ["..:/var/www/html"]
+    environment: {DB_HOST: db, DB_NAME: catalogue, DB_USER: catalogue, DB_PASSWORD: catalogue_dev_password}
+    depends_on: {db: {condition: service_healthy}}
+  db:
+    image: mariadb:11
+    environment: {MARIADB_DATABASE: catalogue, MARIADB_USER: catalogue, MARIADB_PASSWORD: catalogue_dev_password, MARIADB_ROOT_PASSWORD: root_dev_password}
+    volumes: [mariadb_data:/var/lib/mysql, ../database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro]
+    healthcheck: {test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"], interval: 5s, timeout: 5s, retries: 20}
+volumes: {mariadb_data:}
