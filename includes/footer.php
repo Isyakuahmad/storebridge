@@ -1,1 +1,1 @@
-</main><footer class="text-center text-muted py-4">Simple catalogues for Nigerian businesses.</footer></body></html>
+</main><footer class="text-center text-muted py-4">StoreBridge for Nigerian small businesses.</footer></body></html>
