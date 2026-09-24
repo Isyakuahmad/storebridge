@@ -1,0 +1,23 @@
+name: Portable Docker Build
+
+on:
+  push:
+    branches:
+      - portable-docker
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build production image
+        run: docker build -t storebridge:test .
+
+      - name: PHP syntax check
+        run: |
+          docker run --rm storebridge:test sh -lc 'find /var/www/html -name "*.php" -print0 | xargs -0 -n1 php -l'
