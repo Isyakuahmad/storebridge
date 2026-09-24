@@ -10,3 +10,4 @@ function admin_required(){login_required();if(!is_admin())go('/seller/dashboard.
 function store(){global $pdo;$q=$pdo->prepare('SELECT * FROM stores WHERE user_id=?');$q->execute([$_SESSION['user_id']??0]);return $q->fetch();}
 function money($v){return '₦'.number_format((float)$v,2);}
 function cart_count(){return array_sum($_SESSION['cart']??[]);}
+function audit_log($action,$targetType,$targetId=null,$details=null){global $pdo;if(empty($_SESSION['user_id']))return;$q=$pdo->prepare('INSERT INTO audit_logs(actor_user_id,action,target_type,target_id,details)VALUES(?,?,?,?,?)');$q->execute([$_SESSION['user_id'],$action,$targetType,$targetId,$details]);}
