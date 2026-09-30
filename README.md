@@ -10,7 +10,7 @@ StoreBridge currently provides:
 - One storefront per seller account
 - Store settings, delivery note, and WhatsApp number
 - Product creation with category, price, description, variations, availability, and image upload
-- JPG, PNG, and WebP image uploads up to 2 MB
+- JPG, PNG, and WebP image uploads up to 1 MB
 - Configurable upload storage path and public upload URL
 - Public storefront and product pages
 - Session-based shopping cart
@@ -361,7 +361,7 @@ The current application includes:
 - Seller queries scoped to the authenticated seller's store
 - Public queries restricted to active sellers and approved products
 - MIME validation for product image uploads
-- A 2 MB upload-size limit
+- A 1 MB upload-size limit
 - No production secrets committed to the repository
 - Audit logging for administrative moderation and account actions
 
