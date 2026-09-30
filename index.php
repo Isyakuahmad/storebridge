@@ -53,7 +53,7 @@ require 'includes/header.php';
         </div>
     </section>
 
-    <section class="py-5">
+    <section id="how-it-works" class="py-5">
         <h2 class="h3 text-center mb-4">How StoreBridge works</h2>
         <div class="row g-4">
             <div class="col-md-4">
