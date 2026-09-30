@@ -85,5 +85,9 @@ require 'includes/header.php';
             <a href="/auth/login.php">Already registered? Log in.</a>
         </div>
     </section>
+
+    <div class="text-end mt-4">
+        <a href="/about.php" class="text-muted">About Us</a>
+    </div>
 </div>
 <?php require 'includes/footer.php'; ?>
