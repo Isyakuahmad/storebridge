@@ -33,5 +33,9 @@ require '../includes/header.php';
     <input class="form-control mb-2" type="password" name="password" placeholder="Password" required>
     <button class="btn btn-success">Login</button>
     <div class="mt-3"><a href="/auth/forgot-password.php">Forgot password?</a></div>
+    <div class="mt-2 text-muted">
+        Don't have an account?
+        <a href="/auth/register.php" class="fw-semibold">Register your business.</a>
+    </div>
 </form>
 <?php require '../includes/footer.php';?>
