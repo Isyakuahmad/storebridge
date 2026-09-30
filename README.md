@@ -18,6 +18,7 @@ StoreBridge currently provides:
 - Order creation with product and price snapshots
 - WhatsApp handoff through a `wa.me` link
 - Seller order list with order-status updates
+- Forgot-password and one-time password reset flow
 - Platform administration and product moderation
 - Seller suspension and reactivation
 - Audit logging for moderation and seller-account actions
@@ -330,6 +331,20 @@ WhatsApp handoff
       ↓
 Seller manages order status
 ```
+
+## Password recovery
+
+StoreBridge uses one-time, expiring password reset tokens. Only a SHA-256 hash of the token is stored in the database, the token expires after one hour, and successful use invalidates the token.
+
+Password-reset email delivery is designed for a transactional email provider. The current adapter uses the Brevo API and keeps the API key in a local, gitignored configuration file rather than in the repository. Brevo's transactional email API supports password-reset messages through `POST /v3/smtp/email`; the sender must be registered/verified in Brevo.
+
+For an existing production database, apply:
+
+```text
+database/migrations/002_password_reset_tokens.sql
+```
+
+Then create a server-only `config/email.local.php` from `config/email.local.example.php` and add the verified sender, Brevo API key, and public StoreBridge URL.
 
 ## Security
 
