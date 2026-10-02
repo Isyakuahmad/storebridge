@@ -1,9 +1,10 @@
-name: Portable Docker Build
+name: StoreBridge Checks
 
 on:
   push:
     branches:
       - portable-docker
+      - launch-prep
   pull_request:
     branches:
       - main
@@ -21,3 +22,10 @@ jobs:
       - name: PHP syntax check
         run: |
           docker run --rm storebridge:test sh -lc 'find /var/www/html -name "*.php" -print0 | xargs -0 -n1 php -l'
+
+      - name: Validate database schema
+        run: |
+          docker run -d --name storebridge-db             -e MARIADB_DATABASE=catalogue             -e MARIADB_USER=catalogue             -e MARIADB_PASSWORD=catalogue_dev_password             -e MARIADB_ROOT_PASSWORD=root_dev_password             mariadb:11
+          until docker exec storebridge-db healthcheck.sh --connect --innodb_initialized; do sleep 1; done
+          docker exec -i storebridge-db mariadb -uroot -proot_dev_password < database/init.sql
+          docker rm -f storebridge-db
