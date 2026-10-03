@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/auth.php';
+require_once '../config/uploads.php';
 login_required();
 
 $q=$pdo->prepare('SELECT id,name,email,password_hash,role FROM users WHERE id=?');
@@ -68,7 +69,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
                 foreach($images as $image){
                     if($image){
-                        $path=rtrim($uploadDir??dirname(__DIR__).'/uploads','/\\').DIRECTORY_SEPARATOR.$image;
+                        $path=rtrim($uploadDir,'/\\').DIRECTORY_SEPARATOR.$image;
                         if(is_file($path))@unlink($path);
                     }
                 }
