@@ -8,8 +8,9 @@ StoreBridge currently provides:
 
 - Seller registration and login
 - One storefront per seller account
-- Store settings, delivery note, and WhatsApp number
-- Product creation with category, price, description, variations, availability, and image upload
+- Store settings, delivery note, WhatsApp number, and seller store-link management
+- Seller account settings, password changes, and account deletion
+- Product creation, editing, deletion, category, price, description, variations, availability, and image upload
 - JPG, PNG, and WebP image uploads up to 1 MB
 - Configurable upload storage path and public upload URL
 - Public storefront and product pages
@@ -23,6 +24,24 @@ StoreBridge currently provides:
 - Seller suspension and reactivation
 - Audit logging for moderation and seller-account actions
 - CSRF protection, password hashing, prepared SQL statements, and output escaping
+
+## Seller catalogue and account management
+
+Sellers can manage their own catalogue without administrator access:
+
+- Edit or delete any of their products
+- Replace product images while keeping the 1 MB upload limit
+- Change product price, description, category, variations, and availability
+- Update store name, description, WhatsApp number, and delivery note
+- View and share their unique storefront link
+- Copy their storefront link directly from the seller dashboard
+- Update account name and email
+- Change their account password
+- Delete their seller account and its store data
+
+Editing a product sends it back to `pending` moderation so that changes are reviewed before the product is publicly visible again. Deleting a product preserves historical order snapshots while removing the product itself.
+
+Seller account deletion requires the current password and an explicit `DELETE` confirmation. Admin accounts cannot self-delete from the seller account settings page.
 
 ## Product moderation
 
@@ -91,24 +110,29 @@ Admin access is separate from normal seller access.
 ├── database/
 │   ├── init.sql             # Fresh database schema
 │   └── migrations/
-│       └── 001_admin_moderation.sql
+│       ├── 001_admin_moderation.sql
+│       └── 002_password_reset_tokens.sql
 ├── docker/
 │   ├── 000-default.conf     # Production Apache configuration
 │   └── entrypoint.sh        # Runtime upload-directory setup
 ├── includes/
 │   ├── auth.php             # Sessions, auth, roles, CSRF, helpers
-│   ├── header.php           # Shared layout and navigation
+│   ├── header.php           # Shared layout, logo, and navigation
 │   └── footer.php           # Shared footer
 ├── public/
 │   ├── store.php            # Public storefront
 │   ├── product.php          # Public product details
 │   └── cart.php             # Cart and order submission
 ├── seller/
-│   ├── dashboard.php        # Seller dashboard
+│   ├── dashboard.php        # Seller dashboard and store link
 │   ├── store.php            # Store settings
-│   ├── products.php         # Seller product list
+│   ├── products.php         # Seller product list and deletion
 │   ├── add-product.php      # Product creation and uploads
+│   ├── edit-product.php     # Product editing
+│   ├── account.php          # Seller account settings
 │   └── orders.php           # Seller orders and statuses
+├── assets/
+│   └── logo-mark.svg        # Reusable StoreBridge logo mark
 ├── uploads/
 │   └── .gitkeep             # Keeps the default upload directory in Git
 ├── .devcontainer/           # GitHub Codespaces / local Docker development
@@ -152,6 +176,12 @@ database/migrations/001_admin_moderation.sql
 ```
 
 The migration preserves existing products by marking them `approved`. New products are created as `pending`.
+
+For password recovery on an existing database, also apply:
+
+```text
+database/migrations/002_password_reset_tokens.sql
+```
 
 ## Configuration
 
@@ -271,36 +301,9 @@ The Docker entrypoint prepares this directory on every container start.
 
 For object storage such as S3-compatible storage, the application would need a separate storage adapter; that is not part of the current release.
 
-## Railway deployment
+## Deployment note
 
-Railway can deploy this repository directly from GitHub and automatically use the root `Dockerfile`. Railway's MySQL service exposes connection variables including `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, and `MYSQLDATABASE`. A Railway service can also attach a persistent volume at a chosen mount path.
-
-For the first deployment, configure the StoreBridge service with:
-
-```text
-DB_HOST=<Railway MYSQLHOST>
-DB_PORT=<Railway MYSQLPORT>
-DB_NAME=<Railway MYSQLDATABASE>
-DB_USER=<Railway MYSQLUSER>
-DB_PASSWORD=<Railway MYSQLPASSWORD>
-
-UPLOAD_DIR=/var/www/html/uploads
-UPLOAD_URL=/uploads
-```
-
-Attach the persistent volume to:
-
-```text
-/var/www/html/uploads
-```
-
-Then initialize the production database from `database/init.sql`, promote the owner account to `admin`, and run the final live test.
-
-References:
-
-- Railway MySQL: https://docs.railway.com/databases/mysql
-- Railway Dockerfiles: https://docs.railway.com/builds/dockerfiles
-- Railway Volumes: https://docs.railway.com/volumes
+The current production deployment for StoreBridge is being prepared on InfinityFree. The root Docker configuration remains available for portable deployments, but the live InfinityFree environment uses its own web root and MySQL-compatible database configuration.
 
 ## Typical seller/customer flow
 
@@ -336,7 +339,7 @@ Seller manages order status
 
 StoreBridge uses one-time, expiring password reset tokens. Only a SHA-256 hash of the token is stored in the database, the token expires after one hour, and successful use invalidates the token.
 
-Password-reset email delivery is designed for a transactional email provider. The current adapter uses the Brevo API and keeps the API key in a local, gitignored configuration file rather than in the repository. Brevo's transactional email API supports password-reset messages through `POST /v3/smtp/email`; the sender must be registered/verified in Brevo.
+Password-reset email delivery is designed for a transactional email provider. The current adapter uses the Brevo API and keeps the API key in a local, gitignored configuration file rather than in the repository. The sender must be registered/verified in Brevo.
 
 For an existing production database, apply:
 
@@ -367,26 +370,6 @@ The current application includes:
 
 Development credentials are defined only for local Docker Compose use and must be replaced with production secrets.
 
-## Testing
-
-The project has been exercised in GitHub Codespaces through the core seller/customer flow, including:
-
-- Registration and login
-- Store creation
-- Product creation
-- Product image upload
-- Product image display
-- Public storefront
-- Product page
-- Cart
-- Order creation
-- WhatsApp handoff
-- Seller order management
-
-GitHub Actions runs the production Docker build and PHP syntax checks for changes on `portable-docker` and pull requests targeting `main`.
-
-Launch preparation additionally validates the moderation schema, production storage configuration, and admin authorization path before public deployment.
-
 ## Launch checklist
 
 Before making StoreBridge publicly available:
@@ -395,14 +378,19 @@ Before making StoreBridge publicly available:
 - [ ] Production schema initialized
 - [ ] Owner account promoted to `admin`
 - [ ] Production DB environment variables configured
-- [ ] Persistent upload volume attached
+- [ ] Persistent upload storage verified
 - [ ] `UPLOAD_DIR` and `UPLOAD_URL` verified
 - [ ] HTTPS enabled
-- [ ] Seller moderation tested
+- [ ] Seller product create/edit/delete tested
+- [ ] Seller store editing tested
+- [ ] Seller account editing tested
+- [ ] Seller store-link copy/share tested
+- [ ] Seller moderation flow tested
 - [ ] Seller suspension tested
 - [ ] Audit log tested
 - [ ] Customer order tested
 - [ ] WhatsApp handoff tested
+- [ ] Password reset email tested
 - [ ] Production deployment logs reviewed
 - [ ] Final live smoke test completed
 
