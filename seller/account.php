@@ -2,7 +2,7 @@
 require_once '../includes/auth.php';
 login_required();
 
-$q=$pdo->prepare('SELECT id,name,email,password_hash FROM users WHERE id=?');
+$q=$pdo->prepare('SELECT id,name,email,password_hash,role FROM users WHERE id=?');
 $q->execute([$_SESSION['user_id']]);
 $u=$q->fetch();
 
@@ -49,6 +49,37 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $q->execute([password_hash($new,PASSWORD_DEFAULT),$u['id']]);
             $success='Password updated successfully.';
         }
+    }elseif($action==='delete'){
+        if($u['role']==='admin'){
+            $error='Admin accounts cannot be deleted from here.';
+        }elseif(!password_verify($_POST['delete_password']??'',$u['password_hash'])){
+            $error='Current password is incorrect.';
+        }elseif(trim($_POST['delete_confirmation']??'')!=='DELETE'){
+            $error='Type DELETE exactly to confirm account deletion.';
+        }else{
+            $images=[];
+            $q=$pdo->prepare('SELECT p.image FROM products p JOIN stores s ON s.id=p.store_id WHERE s.user_id=?');
+            $q->execute([$u['id']]);
+            $images=$q->fetchAll(PDO::FETCH_COLUMN);
+
+            try{
+                $q=$pdo->prepare('DELETE FROM users WHERE id=?');
+                $q->execute([$u['id']]);
+
+                foreach($images as $image){
+                    if($image){
+                        $path=rtrim($uploadDir??dirname(__DIR__).'/uploads','/\\').DIRECTORY_SEPARATOR.$image;
+                        if(is_file($path))@unlink($path);
+                    }
+                }
+
+                $_SESSION=[];
+                session_destroy();
+                go('/auth/login.php');
+            }catch(PDOException $x){
+                $error='Unable to delete the account. Please try again.';
+            }
+        }
     }
 }
 
@@ -94,6 +125,26 @@ require '../includes/header.php';
                 <input class="form-control mb-3" type="password" name="confirm_password" placeholder="Confirm new password" required>
                 <button class="btn btn-outline-success">Change password</button>
             </form>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card card-body border-danger">
+            <h2 class="h5 text-danger">Delete account</h2>
+            <p class="text-muted">
+                This permanently deletes your account, store, products, and orders. This cannot be undone.
+            </p>
+            <?php if($u['role']==='admin'):?>
+                <div class="alert alert-warning mb-0">Admin accounts cannot be deleted from here.</div>
+            <?php else:?>
+            <form method="post">
+                <input type="hidden" name="csrf" value="<?=e(csrf())?>">
+                <input type="hidden" name="action" value="delete">
+                <input class="form-control mb-2" type="password" name="delete_password" placeholder="Current password" required>
+                <input class="form-control mb-3" name="delete_confirmation" placeholder="Type DELETE to confirm" required>
+                <button class="btn btn-outline-danger">Delete my account</button>
+            </form>
+            <?php endif;?>
         </div>
     </div>
 </div>
