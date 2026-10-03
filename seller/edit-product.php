@@ -34,8 +34,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $m=(new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']);
         $ok=['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
 
-        if($f['error']||$f['size']>1048576||!isset($ok[$m])){
-            $error='Image must be JPG, PNG or WebP under 1MB.';
+        if($f['error']||$f['size']>2097152||!isset($ok[$m])){
+            $error='Image must be JPG, PNG or WebP under 2MB.';
         }else{
             $newImg=bin2hex(random_bytes(12)).'.'.$ok[$m];
             if(!move_uploaded_file($f['tmp_name'],rtrim($uploadDir,'/\\').DIRECTORY_SEPARATOR.$newImg)){
@@ -91,7 +91,7 @@ require '../includes/header.php';
     <input class="form-control mb-2" name="category" placeholder="Category" value="<?=e($p['category'])?>" required>
     <input class="form-control mb-2" name="variations" placeholder="Variations e.g. Small, Medium, Large" value="<?=e($p['variations'])?>">
     <input class="form-control mb-1" type="file" name="image" accept="image/jpeg,image/png,image/webp">
-    <div class="form-text mb-2">Leave empty to keep the current image. JPG, PNG or WebP · maximum 1 MB.</div>
+    <div class="form-text mb-2">Leave empty to keep the current image. JPG, PNG or WebP · maximum 2 MB.</div>
 
     <label><input type="checkbox" name="available" <?= $p['available']?'checked':''?>> Available</label>
 
