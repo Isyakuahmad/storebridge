@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/auth.php';
+require_once '../config/phone.php';
 
 $slug=preg_replace('/[^a-z0-9-]/','',strtolower($_GET['slug']??''));
 $q=$pdo->prepare('SELECT s.* FROM stores s JOIN users u ON u.id=s.user_id WHERE s.slug=? AND u.account_status=?');
@@ -47,15 +48,14 @@ if($_SERVER['REQUEST_METHOD']==='POST'&&$items){
         $pdo->commit();
         $_SESSION['cart']=[];
 
-        $wa=preg_replace('/\D+/','',$s['whatsapp_number']);
-        if(str_starts_with($wa,'0')){
-            $wa='234'.substr($wa,1);
-        }elseif(!str_starts_with($wa,'234')){
-            $wa='234'.$wa;
-        }
+        $wa=normalize_nigerian_whatsapp($s['whatsapp_number']);
 
-        $text=urlencode("Order #$oid from {$s['name']}");
-        go('https://wa.me/'.$wa.'?text='.$text);
+        if($wa===false){
+            $error='This store has an invalid WhatsApp number. Please ask the seller to update it.';
+        }else{
+            $text=urlencode("Order #$oid from {$s['name']}");
+            go('https://wa.me/'.$wa.'?text='.$text);
+        }
     }
 
     $error='Complete the required fields.';
