@@ -3,13 +3,22 @@ require_once '../includes/auth.php';
 login_required();
 
 $s=store();
+
 if($_SERVER['REQUEST_METHOD']==='POST'){
     csrf_check();
 
     $n=trim($_POST['name']??'');
     $slugBase=preg_replace('/[^a-z0-9]+/','-',strtolower($n));
     $slugBase=trim($slugBase,'-');
+
     $w=preg_replace('/\D+/','',$_POST['whatsapp']??'');
+    if(str_starts_with($w,'0')){
+        $w='234'.substr($w,1);
+    }elseif(str_starts_with($w,'234')){
+        $w='234'.substr($w,3);
+    }
+    $w='234'.$w;
+    $w=preg_replace('/^234234/','234',$w);
 
     if($n&&$w&&$slugBase){
         $slug=$slugBase;
@@ -57,7 +66,8 @@ require '../includes/header.php';
     <input type="hidden" name="csrf" value="<?=e(csrf())?>">
     <input class="form-control mb-2" name="name" placeholder="Store name" value="<?=e($s['name'])?>" required>
     <textarea class="form-control mb-2" name="description" placeholder="Description"><?=e($s['description'])?></textarea>
-    <input class="form-control mb-2" name="whatsapp" placeholder="2348012345678" value="<?=e($s['whatsapp_number'])?>" required>
+    <input class="form-control mb-2" name="whatsapp" placeholder="08012345678 or 2348012345678" value="<?=e($s['whatsapp_number'])?>" required>
+    <div class="form-text mb-2">You can enter a Nigerian number starting with 0 or +234. It will be converted automatically for WhatsApp.</div>
     <textarea class="form-control mb-2" name="delivery_note" placeholder="Delivery note"><?=e($s['delivery_note'])?></textarea>
     <button class="btn btn-success">Save changes</button>
 </form>
