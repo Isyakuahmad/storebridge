@@ -1,14 +1,14 @@
 <?php
 require_once 'includes/auth.php';
-$title = 'About Us';
+$title = 'About Choosery';
 require 'includes/header.php';
 ?>
 <section class="py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <h1 class="mb-3">About StoreBridge</h1>
+            <h1 class="mb-3">About Choosery</h1>
             <p class="lead text-muted">
-                StoreBridge is a simple online storefront platform built to help Nigerian small businesses present their products online and make it easier for customers to place orders.
+                Choosery is a simple online storefront platform built to help Nigerian small businesses present their products online and make it easier for customers to place orders.
             </p>
 
             <div class="card card-body mt-4">
@@ -19,9 +19,9 @@ require 'includes/header.php';
             </div>
 
             <div class="card card-body mt-3">
-                <h2 class="h4">Why StoreBridge</h2>
+                <h2 class="h4">Why Choosery</h2>
                 <p class="text-muted mb-0">
-                    Many small businesses already sell through WhatsApp and other social channels. StoreBridge gives them a more organized place to display their products while keeping customer conversations simple.
+                    Many small businesses already sell through WhatsApp and other social channels. Choosery gives them a more organized place to display their products while keeping customer conversations simple.
                 </p>
             </div>
 
