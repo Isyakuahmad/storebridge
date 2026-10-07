@@ -3,8 +3,9 @@ require_once 'includes/auth.php';
 $title = 'Contact Choosery';
 require 'includes/header.php';
 
-$supportEmail = trim((string)(getenv('CHOOSERY_SUPPORT_EMAIL') ?: ''));
-$supportWhatsApp = preg_replace('/\D+/', '', (string)(getenv('CHOOSERY_SUPPORT_WHATSAPP') ?: ''));
+$supportEmail = 'isyakusalehahmad10@gmail.com';
+$supportWhatsApp = '2348029033160';
+$supportPhone = '2348120223478';
 ?>
 <section class="py-4">
     <div class="row justify-content-center">
@@ -19,15 +20,17 @@ $supportWhatsApp = preg_replace('/\D+/', '', (string)(getenv('CHOOSERY_SUPPORT_W
 
             <div class="card card-body mb-3">
                 <h2 class="h4">Choosery / Developer Support</h2>
-                <?php if($supportEmail || $supportWhatsApp): ?>
-                    <p class="text-muted">For platform problems, account issues, or technical support:</p>
-                    <div class="d-flex flex-wrap gap-2">
-                        <?php if($supportEmail): ?><a class="btn btn-outline-success" href="mailto:<?=e($supportEmail)?>">Email Support</a><?php endif; ?>
-                        <?php if($supportWhatsApp): ?><a class="btn btn-success" href="https://wa.me/<?=e($supportWhatsApp)?>" target="_blank" rel="noopener">WhatsApp Support</a><?php endif; ?>
-                    </div>
-                <?php else: ?>
-                    <p class="text-muted mb-0">Platform support contact details will be published here. Seller contact is available directly on each seller's store and product page.</p>
-                <?php endif; ?>
+                <p class="text-muted">For platform problems, account issues, or technical support, contact the Choosery developer/support team.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-outline-success" href="mailto:<?=e($supportEmail)?>">Email Support</a>
+                    <a class="btn btn-success" href="https://wa.me/<?=e($supportWhatsApp)?>" target="_blank" rel="noopener">WhatsApp Support</a>
+                    <a class="btn btn-outline-success" href="tel:+<?=e($supportPhone)?>">Call Support</a>
+                </div>
+                <div class="small text-muted mt-3">
+                    <div><strong>Email:</strong> <?=e($supportEmail)?></div>
+                    <div><strong>WhatsApp:</strong> +234 802 903 3160</div>
+                    <div><strong>Phone:</strong> +234 812 022 3478</div>
+                </div>
             </div>
 
             <div class="alert alert-light border small">
