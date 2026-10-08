@@ -11,3 +11,24 @@ function store(){global $pdo;$q=$pdo->prepare('SELECT * FROM stores WHERE user_i
 function money($v){return '₦'.number_format((float)$v,2);}
 function cart_count(){return array_sum($_SESSION['cart']??[]);}
 function audit_log($action,$targetType,$targetId=null,$details=null){global $pdo;if(empty($_SESSION['user_id']))return;$q=$pdo->prepare('INSERT INTO audit_logs(actor_user_id,action,target_type,target_id,details)VALUES(?,?,?,?,?)');$q->execute([$_SESSION['user_id'],$action,$targetType,$targetId,$details]);}
+function ensure_referral_code($userId){
+    global $pdo;
+    $q=$pdo->prepare('SELECT referral_code FROM users WHERE id=?');
+    $q->execute([$userId]);
+    $existing=$q->fetchColumn();
+    if($existing)return $existing;
+    for($i=0;$i<5;$i++){
+        $code='CH'.strtoupper(bin2hex(random_bytes(4)));
+        try{
+            $q=$pdo->prepare('UPDATE users SET referral_code=? WHERE id=? AND referral_code IS NULL');
+            $q->execute([$code,$userId]);
+            if($q->rowCount())return $code;
+        }catch(PDOException $e){}
+    }
+    throw new RuntimeException('Unable to create referral code.');
+}
+function referral_url($code){
+    $host=$_SERVER['HTTP_HOST']??'storebridge.freedev.app';
+    $scheme=(!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'https':'http';
+    return $scheme.'://'.$host.'/auth/register.php?ref='.rawurlencode($code);
+}
