@@ -25,7 +25,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
     }
 }
-$q=$pdo->prepare("SELECT s.*,p.name AS plan_name FROM subscriptions s JOIN plans p ON p.id=s.plan_id WHERE s.user_id=? AND s.status='active' AND s.ends_at>NOW() ORDER BY s.ends_at DESC LIMIT 1");
+$q=$pdo->prepare("SELECT s.*,p.name AS plan_name FROM subscriptions s JOIN plans p ON p.id=s.plan_id WHERE s.user_id=? AND s.status='active' AND s.starts_at<=NOW() AND s.ends_at>NOW() ORDER BY s.ends_at DESC LIMIT 1");
 $q->execute([$userId]); $current=$q->fetch();
 $q=$pdo->prepare("SELECT p.*,pl.name AS plan_name FROM payments p JOIN plans pl ON pl.id=p.plan_id WHERE p.user_id=? ORDER BY p.created_at DESC LIMIT 10");
 $q->execute([$userId]); $payments=$q->fetchAll();
