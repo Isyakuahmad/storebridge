@@ -4,7 +4,7 @@ login_required();
 $s=store();
 $referralCode=ensure_referral_code($_SESSION['user_id']);
 $referralUrl=referral_url($referralCode);
-$q=$pdo->prepare("SELECT pl.name,s.ends_at FROM subscriptions s JOIN plans pl ON pl.id=s.plan_id WHERE s.user_id=? AND s.status='active' AND s.ends_at>NOW() ORDER BY s.ends_at DESC LIMIT 1");
+$q=$pdo->prepare("SELECT pl.name,s.ends_at FROM subscriptions s JOIN plans pl ON pl.id=s.plan_id WHERE s.user_id=? AND s.status='active' AND s.starts_at<=NOW() AND s.ends_at>NOW() ORDER BY s.ends_at DESC LIMIT 1");
 $q->execute([$_SESSION['user_id']]); $activeSubscription=$q->fetch();
 $q=$pdo->prepare("SELECT COUNT(*) FROM payments WHERE user_id=? AND status='pending'");
 $q->execute([$_SESSION['user_id']]); $pendingPayment=(int)$q->fetchColumn();
