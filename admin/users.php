@@ -8,8 +8,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
  }
 }
 $q=$pdo->query("SELECT u.id,u.name,u.email,u.account_status,u.created_at,s.slug,s.name AS store_name,
- (SELECT pl.name FROM subscriptions sub JOIN plans pl ON pl.id=sub.plan_id WHERE sub.user_id=u.id AND sub.status='active' AND sub.ends_at>NOW() ORDER BY sub.ends_at DESC LIMIT 1) AS paid_plan,
- (SELECT sub.ends_at FROM subscriptions sub WHERE sub.user_id=u.id AND sub.status='active' AND sub.ends_at>NOW() ORDER BY sub.ends_at DESC LIMIT 1) AS plan_ends_at,
+ (SELECT pl.name FROM subscriptions sub JOIN plans pl ON pl.id=sub.plan_id WHERE sub.user_id=u.id AND sub.status='active' AND sub.starts_at<=NOW() AND sub.ends_at>NOW() ORDER BY sub.ends_at DESC LIMIT 1) AS paid_plan,
+ (SELECT sub.ends_at FROM subscriptions sub WHERE sub.user_id=u.id AND sub.status='active' AND sub.starts_at<=NOW() AND sub.ends_at>NOW() ORDER BY sub.ends_at DESC LIMIT 1) AS plan_ends_at,
  (SELECT p.status FROM payments p WHERE p.user_id=u.id ORDER BY p.created_at DESC LIMIT 1) AS latest_payment_status
  FROM users u LEFT JOIN stores s ON s.user_id=u.id WHERE u.role='seller' ORDER BY u.created_at DESC");
 $us=$q->fetchAll();$title='Seller management';require '../includes/header.php';
