@@ -22,6 +22,9 @@ StoreBridge currently provides:
 - Forgot-password and one-time password reset flow
 - Platform administration and product moderation
 - Seller suspension and reactivation
+- Monthly Free, Moderate, and Premium subscription tiers
+- Manual bank-transfer payment submissions with admin confirmation/rejection
+- Subscription/payment history and audit logging for payment review
 - Audit logging for moderation and seller-account actions
 - CSRF protection, password hashing, prepared SQL statements, and output escaping
 
@@ -76,7 +79,10 @@ The admin area provides:
 
 - Moderation queue
 - Product status filtering
-- Seller account management
+- Seller account management with current paid-plan and latest-payment status
+- Subscription plan monthly-price configuration
+- Pending bank-transfer payment review and manual confirmation/rejection
+- Seller subscription and payment history
 - Audit log
 - Platform-level product and seller visibility
 
@@ -102,7 +108,9 @@ Admin access is separate from normal seller access.
 │   ├── index.php           # Admin dashboard
 │   ├── products.php        # Product moderation
 │   ├── users.php           # Seller management
-│   └── audit-log.php       # Moderation/account audit trail
+│   ├── audit-log.php       # Moderation/account audit trail
+│   ├── payments.php        # Manual bank-transfer payment review
+│   └── plans.php           # Configure monthly paid-plan prices
 ├── auth/                    # Registration, login, logout
 ├── config/
 │   ├── database.php         # Environment-based PDO connection
@@ -111,7 +119,9 @@ Admin access is separate from normal seller access.
 │   ├── init.sql             # Fresh database schema
 │   └── migrations/
 │       ├── 001_admin_moderation.sql
-│       └── 002_password_reset_tokens.sql
+│       ├── 002_password_reset_tokens.sql
+│       ├── 003_referrals.sql
+│       └── 004_subscriptions.sql
 ├── docker/
 │   ├── 000-default.conf     # Production Apache configuration
 │   └── entrypoint.sh        # Runtime upload-directory setup
@@ -130,6 +140,7 @@ Admin access is separate from normal seller access.
 │   ├── add-product.php      # Product creation and uploads
 │   ├── edit-product.php     # Product editing
 │   ├── account.php          # Seller account settings
+│   ├── subscription.php     # Monthly plan selection and payment history
 │   └── orders.php           # Seller orders and statuses
 ├── assets/
 │   └── logo-mark.svg        # Reusable StoreBridge logo mark
@@ -182,6 +193,14 @@ For password recovery on an existing database, also apply:
 ```text
 database/migrations/002_password_reset_tokens.sql
 ```
+
+For an existing database that already has the referral columns, apply the subscription migration once:
+
+```text
+database/migrations/004_subscriptions.sql
+```
+
+The subscription migration creates the Free, Moderate, and Premium plans plus payment and subscription history. Fresh databases initialized from `database/init.sql` already include these tables, so do not run migration `004` again on them. Set Moderate and Premium monthly prices in **Admin → Plans** before accepting transfers. Sellers submit the sender name and transfer reference; an admin must verify the actual bank credit and confirm the payment before the paid month is activated. A transfer reference alone is not proof of payment.
 
 ## Configuration
 
