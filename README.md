@@ -200,7 +200,7 @@ For an existing database that already has the referral columns, apply the subscr
 database/migrations/004_subscriptions.sql
 ```
 
-The subscription migration creates the Free, Moderate, and Premium plans plus payment and subscription history. Fresh databases initialized from `database/init.sql` already include these tables, so do not run migration `004` again on them. Set Moderate and Premium monthly prices in **Admin → Plans** before accepting transfers. Sellers submit the sender name and transfer reference; an admin must verify the actual bank credit and confirm the payment before the paid month is activated. A transfer reference alone is not proof of payment.
+The subscription migration creates the Free, Moderate, and Premium plans plus payment and subscription history. Monthly prices are Free ₦0, Moderate ₦4,250, and Premium ₦7,500. Fresh databases initialized from `database/init.sql` already include these tables, so do not run migration `004` again on them. Admins can adjust the paid-plan prices later in **Admin → Plans**. Sellers submit the sender name and transfer reference; an admin must verify the actual bank credit and confirm the payment before the paid month is activated. A transfer reference alone is not proof of payment.
 
 ## Configuration
 
