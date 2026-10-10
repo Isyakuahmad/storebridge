@@ -3,7 +3,14 @@ services:
     build: {context: ., dockerfile: Dockerfile}
     ports: ["80:80"]
     volumes: ["..:/var/www/html"]
-    environment: {DB_HOST: db, DB_NAME: catalogue, DB_USER: catalogue, DB_PASSWORD: catalogue_dev_password}
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: catalogue
+      DB_USER: catalogue
+      DB_PASSWORD: catalogue_dev_password
+      UPLOAD_DIR: /var/www/html/uploads
+      UPLOAD_URL: /uploads
     depends_on: {db: {condition: service_healthy}}
   db:
     image: mariadb:11

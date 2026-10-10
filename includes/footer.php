@@ -1,1 +1,1 @@
-</main><footer class="text-center text-muted py-4">StoreBridge for Nigerian small businesses.</footer></body></html>
+</main><footer class="border-top py-4 mt-4"><div class="container text-center text-muted small"><div class="mb-2">Choosery — simple storefronts for Nigerian small businesses.</div><div><a class="text-muted me-3" href="/about.php">About</a><a class="text-muted me-3" href="/public/sellers.php">Sellers</a><a class="text-muted" href="/contact.php">Contact</a></div></div></footer></body></html>

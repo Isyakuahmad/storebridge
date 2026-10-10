@@ -1,6 +1,6 @@
 # StoreBridge
 
-StoreBridge is a lightweight online storefront for Nigerian small businesses. Sellers can create a store, publish products, receive customer orders, and move the conversation to WhatsApp.
+StoreBridge is a lightweight online storefront for Nigerian small businesses. Sellers can create a store, publish products for review, receive customer orders, and move the conversation to WhatsApp.
 
 ## What it does
 
@@ -8,23 +8,85 @@ StoreBridge currently provides:
 
 - Seller registration and login
 - One storefront per seller account
-- Store settings, description, delivery note, and WhatsApp number
-- Product creation with category, price, description, variations, availability, and image upload
-- JPG, PNG, and WebP image uploads up to 2 MB
+- Store settings, delivery note, WhatsApp number, and seller store-link management
+- Seller account settings, password changes, and account deletion
+- Product creation, editing, deletion, category, price, description, variations, availability, and image upload
+- JPG, PNG, and WebP image uploads up to 1 MB
 - Configurable upload storage path and public upload URL
 - Public storefront and product pages
 - Session-based shopping cart
 - Customer checkout details
-- Order creation and order-item snapshots
+- Order creation with product and price snapshots
 - WhatsApp handoff through a `wa.me` link
 - Seller order list with order-status updates
+- Forgot-password and one-time password reset flow
+- Platform administration and product moderation
+- Seller suspension and reactivation
+- Monthly Free, Moderate, and Premium subscription tiers
+- Manual bank-transfer payment submissions with admin confirmation/rejection
+- Subscription/payment history and audit logging for payment review
+- Audit logging for moderation and seller-account actions
 - CSRF protection, password hashing, prepared SQL statements, and output escaping
 
-## Current scope
+## Seller catalogue and account management
 
-StoreBridge is intentionally small and dependency-light. The current version does not include online payment processing, WhatsApp Cloud API integration, AI features, subscriptions, inventory management, or a multi-seller marketplace.
+Sellers can manage their own catalogue without administrator access:
 
-Product moderation, platform-wide administration, audit logging, and other governance features are planned separately and are not part of the current seller MVP.
+- Edit or delete any of their products
+- Replace product images while keeping the 1 MB upload limit
+- Change product price, description, category, variations, and availability
+- Update store name, description, WhatsApp number, and delivery note
+- View and share their unique storefront link
+- Copy their storefront link directly from the seller dashboard
+- Update account name and email
+- Change their account password
+- Delete their seller account and its store data
+
+Editing a product sends it back to `pending` moderation so that changes are reviewed before the product is publicly visible again. Deleting a product preserves historical order snapshots while removing the product itself.
+
+Seller account deletion requires the current password and an explicit `DELETE` confirmation. Admin accounts cannot self-delete from the seller account settings page.
+
+## Product moderation
+
+New products enter the `pending` moderation state and are not published to the public storefront until an administrator approves them.
+
+Moderation states are:
+
+- `pending`
+- `approved`
+- `flagged`
+- `rejected`
+
+Administrators can review product details and images, record a moderation note, approve or reject listings, or flag them for further review.
+
+Seller accounts can also be suspended. Suspended sellers cannot log in, their storefront is unavailable publicly, and their products cannot be ordered through direct cart URLs.
+
+## Platform administration
+
+The first StoreBridge owner account must be promoted to the `admin` role after database setup.
+
+After registering the owner account, run:
+
+```sql
+UPDATE users
+SET role='admin'
+WHERE email='owner@example.com';
+```
+
+Replace `owner@example.com` with the actual owner account email.
+
+The admin area provides:
+
+- Moderation queue
+- Product status filtering
+- Seller account management with current paid-plan and latest-payment status
+- Subscription plan monthly-price configuration
+- Pending bank-transfer payment review and manual confirmation/rejection
+- Seller subscription and payment history
+- Audit log
+- Platform-level product and seller visibility
+
+Admin access is separate from normal seller access.
 
 ## Technology
 
@@ -42,31 +104,54 @@ Product moderation, platform-wide administration, audit logging, and other gover
 
 ```text
 .
+├── admin/
+│   ├── index.php           # Admin dashboard
+│   ├── products.php        # Product moderation
+│   ├── users.php           # Seller management
+│   ├── audit-log.php       # Moderation/account audit trail
+│   ├── payments.php        # Manual bank-transfer payment review
+│   └── plans.php           # Configure monthly paid-plan prices
 ├── auth/                    # Registration, login, logout
 ├── config/
 │   ├── database.php         # Environment-based PDO connection
 │   └── uploads.php          # Configurable upload directory and URL
 ├── database/
-│   └── init.sql             # Database schema
+│   ├── init.sql             # Fresh database schema
+│   └── migrations/
+│       ├── 001_admin_moderation.sql
+│       ├── 002_password_reset_tokens.sql
+│       ├── 003_referrals.sql
+│       ├── 004_subscriptions.sql
+│       └── 005_set_subscription_prices.sql
+├── docker/
+│   ├── 000-default.conf     # Production Apache configuration
+│   └── entrypoint.sh        # Runtime upload-directory setup
 ├── includes/
-│   ├── auth.php             # Sessions, auth, CSRF, helpers
-│   ├── header.php           # Shared layout and navigation
+│   ├── auth.php             # Sessions, auth, roles, CSRF, helpers
+│   ├── header.php           # Shared layout, logo, and navigation
 │   └── footer.php           # Shared footer
 ├── public/
 │   ├── store.php            # Public storefront
-│   ├── product.php          # Product details
+│   ├── product.php          # Public product details
 │   └── cart.php             # Cart and order submission
 ├── seller/
-│   ├── dashboard.php        # Seller dashboard
+│   ├── dashboard.php        # Seller dashboard and store link
 │   ├── store.php            # Store settings
-│   ├── products.php         # Seller product list
+│   ├── products.php         # Seller product list and deletion
 │   ├── add-product.php      # Product creation and uploads
+│   ├── edit-product.php     # Product editing
+│   ├── account.php          # Seller account settings
+│   ├── subscription.php     # Monthly plan selection and payment history
 │   └── orders.php           # Seller orders and statuses
+├── assets/
+│   └── logo-mark.svg        # Reusable StoreBridge logo mark
 ├── uploads/
 │   └── .gitkeep             # Keeps the default upload directory in Git
 ├── .devcontainer/           # GitHub Codespaces / local Docker development
 ├── .github/workflows/
 │   └── docker-build.yml     # Automated Docker build and PHP syntax checks
+├── .dockerignore
+├── .env.example             # Configuration template; contains no secrets
 ├── Dockerfile               # Production image
 └── index.php                # StoreBridge homepage
 ```
@@ -82,6 +167,7 @@ The local stack contains:
 - Port 80 forwarded for the website
 - `database/init.sql` mounted for database initialization
 - Development database credentials defined only in Docker Compose
+- Upload configuration set explicitly for the local environment
 
 Open the repository in GitHub Codespaces and let the Dev Container start the stack.
 
@@ -93,7 +179,45 @@ docker compose -f .devcontainer/docker-compose.yml up --build
 
 Then open the forwarded port 80.
 
+### Existing local database
+
+If your database already existed before the admin/moderation changes, apply:
+
+```text
+database/migrations/001_admin_moderation.sql
+```
+
+The migration preserves existing products by marking them `approved`. New products are created as `pending`.
+
+For password recovery on an existing database, also apply:
+
+```text
+database/migrations/002_password_reset_tokens.sql
+```
+
+### Required migrations for an existing production database
+
+Before deploying the current registration, referral, and subscription code to an older database, verify which migrations have already been applied. For a database that predates referrals and subscriptions, apply these **in order**:
+
+1. `database/migrations/003_referrals.sql` — adds referral fields used by registration and seller dashboards.
+2. `database/migrations/004_subscriptions.sql` — creates plans, payments, and subscriptions.
+3. `database/migrations/005_set_subscription_prices.sql` — sets Moderate to ₦4,250/month and Premium to ₦7,500/month.
+
+Run each migration only if its changes are not already present. Do not rerun `003` if the referral columns/constraint already exist, or `004` if the subscription tables already exist; those scripts are not idempotent. Run `005` only after `004` and only if the plans table exists. Back up the production database before applying schema changes. For a fresh database initialized from the current `database/init.sql`, these schema changes and prices are already included.
+
+Admins can adjust the paid-plan prices later in **Admin → Plans**. Sellers submit the sender name and transfer reference; an admin must verify the actual bank credit and confirm the payment before the paid month is activated. A transfer reference alone is not proof of payment.
+
 ## Configuration
+
+### Public application URL
+
+Set `APP_URL` to the canonical public HTTPS origin for the deployment, with no trailing path, query, or fragment. Store and referral links use this configured value rather than the incoming request's `Host` header. The fallback is `https://storebridge.freedev.app`.
+
+Example:
+
+```text
+APP_URL=https://storebridge.freedev.app
+```
 
 ### Database
 
@@ -107,86 +231,157 @@ The application reads database settings from environment variables:
 | `DB_USER` | Database user | `catalogue` |
 | `DB_PASSWORD` | Database password | `change-me` |
 
-The production application does not depend on the Compose service name. Set these variables to match the database service used by the deployment platform.
+The application does not depend on the Docker Compose service name in production. Set these variables to match the database service used by the deployment platform.
 
 ### Uploads
 
-The application reads upload settings from:
+The application reads:
 
 | Variable | Purpose | Example |
 |---|---|---|
 | `UPLOAD_DIR` | Filesystem path used to store uploaded images | `/var/www/html/uploads` |
 | `UPLOAD_URL` | Browser-visible URL prefix for uploaded images | `/uploads` |
 
-Default values are suitable for a standard filesystem-backed deployment:
+Default values:
 
 ```text
 UPLOAD_DIR=/var/www/html/uploads
 UPLOAD_URL=/uploads
 ```
 
-For persistent hosting, the upload directory should be mapped to persistent storage. If the filesystem is ephemeral, uploaded images may be lost when the application is redeployed or restarted.
+For production, `UPLOAD_DIR` should be backed by persistent storage. An ephemeral filesystem can lose uploaded images during redeployment or restart.
 
-If `UPLOAD_DIR` is moved outside the web root, the deployment must also provide a way for Apache (or another web layer) to serve that directory at the configured `UPLOAD_URL`.
+When the upload directory is outside the Apache document root, the deployment must also configure a web-accessible mapping that matches `UPLOAD_URL`.
+
+### Environment template
+
+Copy the safe template when creating a new environment:
+
+```text
+.env.example
+```
+
+Never commit a real `.env` file or production credentials.
 
 ## Production Docker
 
-The repository includes a root `Dockerfile` that builds a standalone PHP + Apache image.
+The root `Dockerfile` builds a standalone PHP + Apache image.
 
-Build it with:
+Build it locally with:
 
 ```bash
 docker build -t storebridge:test .
 ```
 
-The image:
+The production image:
 
 - Installs `pdo_mysql`
 - Enables Apache rewrite support
-- Uses the project as the Apache document root
-- Applies the project Apache configuration
+- Applies the production Apache configuration
 - Sets default upload configuration
-- Creates the upload directory with web-server ownership
+- Initializes the upload directory at runtime
+- Adjusts upload-directory ownership before Apache starts
 
-Docker Compose is kept for local development; the application itself uses environment-based configuration and does not require Compose in production.
+Docker Compose remains a development tool. The application itself uses environment-based configuration and does not require Compose in production.
 
 ## Database initialization
 
-The schema is stored in:
+The schema for a fresh deployment is:
 
 ```text
 database/init.sql
 ```
 
-For local development, Docker Compose mounts this file into MariaDB's initialization directory.
-
-On a production database service, do not assume the Compose initialization behavior exists. Initialize the production database using the platform's supported MySQL/MariaDB client or an appropriate migration/setup process.
-
-## Typical seller flow
+For an existing database, use the migrations in:
 
 ```text
-Register
-  ↓
-Create store
-  ↓
-Add product
-  ↓
-Upload product image
-  ↓
-Publish / view public store
-  ↓
-Customer views product
-  ↓
-Add to cart
-  ↓
+database/migrations/
+```
+
+Do not assume Docker Compose initialization behavior exists on a production database service.
+
+## First production administrator
+
+Create the owner account through the normal registration flow, then promote that account directly in the production database:
+
+```sql
+UPDATE users
+SET role='admin'
+WHERE email='owner@example.com';
+```
+
+After promotion, sign in again to obtain the admin navigation.
+
+Keep the production database credentials private. The admin role should only be granted to trusted platform owners or operators.
+
+## Persistent uploads
+
+StoreBridge is designed so uploaded images can be moved from the default local directory to persistent storage without changing application code.
+
+For a filesystem-backed production service, a suitable arrangement is:
+
+```text
+UPLOAD_DIR=/var/www/html/uploads
+UPLOAD_URL=/uploads
+```
+
+The production storage system should mount persistent storage at:
+
+```text
+/var/www/html/uploads
+```
+
+The Docker entrypoint prepares this directory on every container start.
+
+For object storage such as S3-compatible storage, the application would need a separate storage adapter; that is not part of the current release.
+
+## Deployment note
+
+The current production deployment for StoreBridge is being prepared on InfinityFree. The root Docker configuration remains available for portable deployments, but the live InfinityFree environment uses its own web root and MySQL-compatible database configuration.
+
+## Typical seller/customer flow
+
+```text
+Seller registers
+      ↓
+Creates store
+      ↓
+Adds product
+      ↓
+Product enters moderation
+      ↓
+Admin reviews
+      ↓
+Product approved
+      ↓
+Product appears in public store
+      ↓
+Customer opens product
+      ↓
+Adds to cart
+      ↓
 Checkout
-  ↓
+      ↓
 Order saved
-  ↓
+      ↓
 WhatsApp handoff
-  ↓
+      ↓
 Seller manages order status
 ```
+
+## Password recovery
+
+StoreBridge uses one-time, expiring password reset tokens. Only a SHA-256 hash of the token is stored in the database, the token expires after one hour, and successful use invalidates the token.
+
+Password-reset email delivery is designed for a transactional email provider. The current adapter uses the Brevo API and keeps the API key in a local, gitignored configuration file rather than in the repository. The sender must be registered/verified in Brevo.
+
+For an existing production database, apply:
+
+```text
+database/migrations/002_password_reset_tokens.sql
+```
+
+Then create a server-only `config/email.local.php` from `config/email.local.example.php` and add the verified sender, Brevo API key, and public StoreBridge URL.
 
 ## Security
 
@@ -194,54 +389,67 @@ The current application includes:
 
 - Password hashing with PHP `password_hash`
 - `password_verify` during login
-- PDO prepared statements
 - Session-based authentication
+- Role-based admin authorization
+- Account-status enforcement for suspended accounts
+- PDO prepared statements
 - CSRF tokens on state-changing forms
 - HTML output escaping with `htmlspecialchars`
 - Seller queries scoped to the authenticated seller's store
+- Public queries restricted to active sellers and approved products
 - MIME validation for product image uploads
-- A 2 MB upload-size limit
-- No application secrets committed to the repository
+- A 1 MB upload-size limit
+- No production secrets committed to the repository
+- Audit logging for administrative moderation and account actions
 
-Development credentials are contained in the local Docker Compose configuration and must be replaced with production secrets during deployment.
+Development credentials are defined only for local Docker Compose use and must be replaced with production secrets.
 
-## Testing
+## Launch checklist
 
-The project has been exercised in GitHub Codespaces through the main seller/customer flow, including product creation, image upload and display, cart usage, order creation, and WhatsApp handoff.
+Before making StoreBridge publicly available:
 
-GitHub Actions also runs the production Docker build and PHP syntax checks for changes on `portable-docker` and pull requests targeting `main`.
-
-## Deployment notes
-
-Before launching StoreBridge publicly, configure:
-
-1. A production MySQL-compatible database
-2. `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD`
-3. Persistent storage for `UPLOAD_DIR`
-4. `UPLOAD_URL` matching how the deployment serves uploaded files
-5. Database schema initialization from `database/init.sql`
-6. HTTPS and the deployment platform's production settings
-
-Do not use local development credentials in production.
+- [ ] Production database provisioned
+- [ ] Production schema initialized
+- [ ] Owner account promoted to `admin`
+- [ ] Production DB environment variables configured
+- [ ] Persistent upload storage verified
+- [ ] `UPLOAD_DIR` and `UPLOAD_URL` verified
+- [ ] HTTPS enabled
+- [ ] Seller product create/edit/delete tested
+- [ ] Seller store editing tested
+- [ ] Seller account editing tested
+- [ ] Seller store-link copy/share tested
+- [ ] Seller moderation flow tested
+- [ ] Seller suspension tested
+- [ ] Audit log tested
+- [ ] Customer order tested
+- [ ] WhatsApp handoff tested
+- [ ] Password reset email tested
+- [ ] Production deployment logs reviewed
+- [ ] Final live smoke test completed
 
 ## Development workflow
 
-The repository uses feature branches and pull requests.
+StoreBridge uses feature branches and pull requests.
 
 ```text
-feature branch
-    ↓
-testing
-    ↓
+feature / launch branch
+        ↓
+local testing
+        ↓
+GitHub Actions
+        ↓
 Pull Request
-    ↓
+        ↓
 review
-    ↓
+        ↓
 main
+        ↓
+production deployment
 ```
 
 The `main` branch is treated as the stable branch. Production-facing changes should be tested before they are merged.
 
 ## License
 
-No public license has been added yet. Treat the repository as proprietary unless a license is added by the project owner.
+No public license has been added yet. Treat this repository as proprietary unless a license is added by the project owner.
