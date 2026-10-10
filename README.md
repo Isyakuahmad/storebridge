@@ -209,6 +209,16 @@ Admins can adjust the paid-plan prices later in **Admin → Plans**. Sellers sub
 
 ## Configuration
 
+### Public application URL
+
+Set `APP_URL` to the canonical public HTTPS origin for the deployment, with no trailing path, query, or fragment. Store and referral links use this configured value rather than the incoming request's `Host` header. The fallback is `https://storebridge.freedev.app`.
+
+Example:
+
+```text
+APP_URL=https://storebridge.freedev.app
+```
+
 ### Database
 
 The application reads database settings from environment variables:
