@@ -11,8 +11,8 @@ CREATE TABLE plans (
 
 INSERT INTO plans (code,name,monthly_price,description) VALUES
 ('free','Free',0.00,'Basic access to Choosery.'),
-('moderate','Moderate',NULL,'For sellers who need more room to grow. Set the monthly price in Admin > Plans.'),
-('premium','Premium',NULL,'For sellers who need the full paid experience. Set the monthly price in Admin > Plans.');
+('moderate','Moderate',4250.00,'For sellers who need more room to grow.'),
+('premium','Premium',7500.00,'For sellers who need the full paid experience.');
 
 CREATE TABLE payments (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
