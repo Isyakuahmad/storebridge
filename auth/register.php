@@ -16,6 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($n && $e && strlen($p) >= 8) {
         try {
+            // Create the account and its referral code atomically. This avoids leaving
+            // an unusable account behind if referral-code creation fails.
+            $pdo->beginTransaction();
+
             $referrerId = null;
             if ($referralCode) {
                 $q = $pdo->prepare('SELECT id FROM users WHERE referral_code=? AND account_status=?');
@@ -27,24 +31,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $q->execute([$n, $e, password_hash($p, PASSWORD_DEFAULT), $referrerId]);
             $newUserId = (int)$pdo->lastInsertId();
 
-            // Establish referral attribution before authenticating the new account.
             ensure_referral_code($newUserId);
+            $pdo->commit();
+
+            // Rotate the session only after the database transaction succeeds.
             session_regenerate_id(true);
-            unset($_SESSION['referral_code']);
+            unset($_SESSION['referral_code'], $_SESSION['csrf']);
             $_SESSION['user_id'] = $newUserId;
-            unset($_SESSION['csrf']);
             go('/seller/dashboard.php');
         } catch (PDOException $x) {
-            $driverCode = (int)($x->errorInfo[1] ?? 0);
-            if ($driverCode === 1062) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            // Error 1062 can be caused by any unique key, not just email.
+            // Only show the duplicate-email message when that email actually exists.
+            $emailExists = false;
+            try {
+                $q = $pdo->prepare('SELECT id FROM users WHERE email=? LIMIT 1');
+                $q->execute([$e]);
+                $emailExists = (bool)$q->fetchColumn();
+            } catch (Throwable $lookupError) {
+                error_log('Choosery registration duplicate-email check failed: ' . $lookupError->getMessage());
+            }
+
+            if ($emailExists) {
                 $error = 'That email address is already registered. Please log in or use another email.';
             } else {
                 error_log('Choosery registration database error: ' . $x->getMessage());
                 $error = 'We could not complete registration because of a database problem. Please try again later.';
             }
         } catch (RuntimeException $x) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             error_log('Choosery registration referral setup error: ' . $x->getMessage());
-            $error = 'Your account could not be fully set up. Please contact support before trying to register again.';
+            $error = 'We could not complete your account setup. Please try again later.';
+        } catch (Throwable $x) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('Choosery registration unexpected error: ' . $x->getMessage());
+            $error = 'We could not complete registration. Please try again later.';
         }
     } else {
         $error = 'Name, valid email, and password of 8+ characters are required.';
