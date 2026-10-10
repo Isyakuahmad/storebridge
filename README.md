@@ -195,13 +195,17 @@ For password recovery on an existing database, also apply:
 database/migrations/002_password_reset_tokens.sql
 ```
 
-For an existing database that already has the referral columns, apply the subscription migration once:
+### Required migrations for an existing production database
 
-```text
-database/migrations/004_subscriptions.sql
-```
+Before deploying the current registration, referral, and subscription code to an older database, verify which migrations have already been applied. For a database that predates referrals and subscriptions, apply these **in order**:
 
-The subscription migration creates the Free, Moderate, and Premium plans plus payment and subscription history. Monthly prices are Free ₦0, Moderate ₦4,250, and Premium ₦7,500. Fresh databases initialized from `database/init.sql` already include these tables and prices, so do not run migration `004` on them. If migration `004` was already applied to an existing database, run `database/migrations/005_set_subscription_prices.sql` once to update the stored prices without recreating tables. Admins can adjust the paid-plan prices later in **Admin → Plans**. Sellers submit the sender name and transfer reference; an admin must verify the actual bank credit and confirm the payment before the paid month is activated. A transfer reference alone is not proof of payment.
+1. `database/migrations/003_referrals.sql` — adds referral fields used by registration and seller dashboards.
+2. `database/migrations/004_subscriptions.sql` — creates plans, payments, and subscriptions.
+3. `database/migrations/005_set_subscription_prices.sql` — sets Moderate to ₦4,250/month and Premium to ₦7,500/month.
+
+Run each migration only if its changes are not already present. Do not rerun `003` if the referral columns/constraint already exist, or `004` if the subscription tables already exist; those scripts are not idempotent. Run `005` only after `004` and only if the plans table exists. Back up the production database before applying schema changes. For a fresh database initialized from the current `database/init.sql`, these schema changes and prices are already included.
+
+Admins can adjust the paid-plan prices later in **Admin → Plans**. Sellers submit the sender name and transfer reference; an admin must verify the actual bank credit and confirm the payment before the paid month is activated. A transfer reference alone is not proof of payment.
 
 ## Configuration
 
