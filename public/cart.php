@@ -47,24 +47,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $items) {
             foreach ($items as $p) {
                 $i->execute([$oid, $p['id'], $p['name'], $p['price'], $p['qty']]);
             }
-            $pdo->commit();
-            $_SESSION['cart'] = [];
+
+            // Build the WhatsApp draft from the saved order and item snapshots.
+            $q = $pdo->prepare('SELECT id,customer_name,customer_phone,customer_address,notes,total,status FROM orders WHERE id=? AND store_id=?');
+            $q->execute([$oid, $s['id']]);
+            $savedOrder = $q->fetch();
+            if (!$savedOrder) {
+                throw new RuntimeException('Saved order could not be read back.');
+            }
+
+            $q = $pdo->prepare('SELECT product_name,unit_price,quantity FROM order_items WHERE order_id=? ORDER BY id');
+            $q->execute([$oid]);
+            $savedItems = $q->fetchAll();
+            if (!$savedItems) {
+                throw new RuntimeException('Saved order items could not be read back.');
+            }
 
             $message = [
-                "New Choosery order #$oid",
+                "New order #{$savedOrder['id']}",
                 "Store: {$s['name']}",
-                "Customer: $n",
-                "Customer phone: $phone",
-                "Delivery address: $addr",
+                "Customer: {$savedOrder['customer_name']}",
+                "Customer phone: {$savedOrder['customer_phone']}",
+                "Delivery address: {$savedOrder['customer_address']}",
             ];
-            if ($notes !== '') $message[] = "Notes: $notes";
-            $message[] = 'Items:';
-            foreach ($items as $p) {
-                $message[] = '- ' . $p['name'] . ' x ' . $p['qty'] . ' @ ' . money($p['price']) . ' = ' . money($p['line']);
+            if (trim((string)$savedOrder['notes']) !== '') {
+                $message[] = "Customer notes: {$savedOrder['notes']}";
             }
-            $message[] = 'Total: ' . money($total);
-            $message[] = 'Order status: pending';
-            go('https://wa.me/' . $sellerWhatsApp . '?text=' . rawurlencode(implode("\n", $message)));
+            $message[] = '';
+            $message[] = 'Order items:';
+            foreach ($savedItems as $item) {
+                $lineTotal = (float)$item['unit_price'] * (int)$item['quantity'];
+                $message[] = '- ' . $item['product_name'] . ' x ' . $item['quantity'] . ' @ ' . money($item['unit_price']) . ' each = ' . money($lineTotal);
+            }
+            $message[] = '';
+            $message[] = 'Order total: ' . money($savedOrder['total']);
+            $message[] = 'Order status: ' . ucfirst($savedOrder['status']);
+            $message[] = '';
+            $message[] = 'Please confirm item availability, the delivery fee, and the estimated delivery time. Thank you.';
+
+            $whatsAppUrl = 'https://wa.me/' . $sellerWhatsApp . '?text=' . rawurlencode(implode("\n", $message));
+            $pdo->commit();
+            $_SESSION['cart'] = [];
+            go($whatsAppUrl);
         } catch (Throwable $x) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             error_log('Choosery checkout error: ' . $x->getMessage());
