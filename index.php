@@ -140,6 +140,55 @@ require 'includes/header.php';
         </div>
     </section>
 
+    <section id="plans" class="py-5">
+        <div class="text-center mb-4">
+            <span class="badge text-bg-light border mb-2">Plans for every stage</span>
+            <h2 class="display-6 fw-bold">Start free. Upgrade as your business grows.</h2>
+            <p class="text-muted mx-auto" style="max-width: 720px;">Choose the plan that suits your business. Paid subscriptions begin only after your bank transfer is verified.</p>
+        </div>
+        <?php
+        $publicPlans = [];
+        try {
+            $publicPlans = $pdo->query("SELECT code, name, monthly_price FROM plans WHERE is_active = 1 ORDER BY FIELD(code, 'free', 'moderate', 'premium')")->fetchAll();
+        } catch (Throwable $ex) {
+            error_log('Choosery public plans could not be loaded: ' . $ex->getMessage());
+        }
+        $publicPlanFeatures = [
+            'free' => ['Create a store and catalogue', 'Public storefront page', 'Orders handed off through WhatsApp', 'Core selling tools'],
+            'moderate' => ['Everything in Free', 'Higher product limits and more store tools as they become available', 'Expanded reports and order tools as they become available'],
+            'premium' => ['Everything in Moderate', 'More product and order-management tools as they become available', 'Additional reports and growth tools as they become available', 'Store-promotion tools when released'],
+        ];
+        ?>
+        <div class="row g-3">
+            <?php foreach ($publicPlans as $plan): ?>
+                <?php
+                $planCode = (string)$plan['code'];
+                if (!isset($publicPlanFeatures[$planCode])) continue;
+                $planPrice = $plan['monthly_price'] === null ? 'Price not set' : ($planCode === 'free' ? '₦0' : money($plan['monthly_price']));
+                $upgradeUrl = !empty($_SESSION['user_id'])
+                    ? '/seller/subscription.php' . ($planCode === 'free' ? '' : '#plan-' . rawurlencode($planCode))
+                    : '/auth/register.php';
+                ?>
+                <div class="col-md-4">
+                    <div class="card card-body h-100 <?= $planCode === 'premium' ? 'border-success shadow-sm' : '' ?>">
+                        <h3 class="h4"><?= e($plan['name']) ?></h3>
+                        <div class="fs-3 fw-semibold"><?= e($planPrice) ?></div>
+                        <div class="small text-muted mb-3"><?= $planCode === 'free' ? 'No monthly fee' : 'per month' ?></div>
+                        <ul class="small ps-3 flex-grow-1">
+                            <?php foreach ($publicPlanFeatures[$planCode] as $feature): ?>
+                                <li class="mb-2"><?= e($feature) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <a class="btn <?= $planCode === 'premium' ? 'btn-success' : 'btn-outline-success' ?> w-100" href="<?= e($upgradeUrl) ?>">
+                            <?php if ($planCode === 'free'): ?>Get started free<?php elseif ($planCode === 'moderate'): ?>Upgrade to Moderate<?php else: ?>Upgrade to Premium<?php endif; ?>
+                        </a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <p class="small text-muted text-center mt-3 mb-0">Some advanced limits, reports and promotional tools are planned and are not yet enforced by the current app. Confirm feature availability before paying for a plan based on those benefits.</p>
+    </section>
+
     <section class="bg-white border rounded-3 p-4 p-md-5 text-center">
         <h2 class="h3">Your products already have a home.</h2>
         <p class="text-muted mb-4">
