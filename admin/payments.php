@@ -25,8 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $q = $pdo->prepare(
                 "SELECT p.*,
                         pl.code AS plan_code,
-                        pl.name AS plan_name,
-                        pl.monthly_price
+                        pl.name AS plan_name
                  FROM payments p
                  JOIN plans pl ON pl.id = p.plan_id
                  WHERE p.id = ?
@@ -41,15 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif (
                 $action === 'confirm'
                 && (
-                    $payment['monthly_price'] === null
-                    || number_format((float)$payment['amount'], 2, '.', '')
-                        !== number_format((float)$payment['monthly_price'], 2, '.', '')
+                    !is_numeric($payment['amount'])
                     || (float)$payment['amount'] <= 0
                     || $payment['plan_code'] === 'free'
                 )
             ) {
                 $pdo->rollBack();
-                $error = 'Payment amount no longer matches the configured plan price. Check the plan price before confirming.';
+                $error = 'Only paid-plan payments with a positive recorded amount can be confirmed. Verify the actual bank credit before confirming.';
             } else {
                 if ($action === 'confirm') {
                     // Keep current time separate from the possibly future renewal start.
