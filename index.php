@@ -1,6 +1,6 @@
 <?php
 require_once 'includes/auth.php';
-$title = 'StoreBridge — One link for your product catalogue';
+$title = 'Choosery — One link for your product catalogue';
 require 'includes/header.php';
 ?>
 <div class="py-4">
@@ -69,10 +69,10 @@ require 'includes/header.php';
     </section>
 
     <section class="py-5 text-center">
-        <span class="badge text-bg-light border mb-3">The StoreBridge idea</span>
+        <span class="badge text-bg-light border mb-3">The Choosery idea</span>
         <h2 class="display-6 fw-bold">One link → entire catalogue → WhatsApp order</h2>
         <p class="lead text-muted mx-auto mt-3" style="max-width: 720px;">
-            StoreBridge gives your business a simple storefront link you can share on WhatsApp,
+            Choosery gives your business a simple storefront link you can share on WhatsApp,
             Instagram, Facebook, TikTok, or anywhere your customers already find you.
         </p>
 
@@ -105,7 +105,7 @@ require 'includes/header.php';
     </section>
 
     <section id="how-it-works" class="py-5">
-        <h2 class="h3 text-center mb-4">How StoreBridge works</h2>
+        <h2 class="h3 text-center mb-4">How Choosery works</h2>
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="card h-100">
@@ -132,7 +132,7 @@ require 'includes/header.php';
                     <div class="card-body">
                         <div class="fw-bold mb-2">Share your link</div>
                         <p class="text-muted mb-0">
-                            Share your StoreBridge link with customers and receive their orders through your storefront.
+                            Share your Choosery link with customers and receive their orders through your storefront.
                         </p>
                     </div>
                 </div>
@@ -196,7 +196,7 @@ require 'includes/header.php';
         </p>
         <a class="btn btn-success btn-lg px-4" href="/auth/register.php">Create your store</a>
         <div class="mt-3">
-            <span class="text-muted">Already have a StoreBridge account?</span>
+            <span class="text-muted">Already have a Choosery account?</span>
             <a href="/auth/login.php" class="fw-semibold">Log in.</a>
         </div>
     </section>
