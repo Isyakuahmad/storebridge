@@ -4,6 +4,8 @@
 .env
 .env.*
 !.env.example
+config/database.local.php
+config/email.local.php
 uploads/*
 !uploads/.gitkeep
 *.log
