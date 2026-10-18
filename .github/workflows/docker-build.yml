@@ -27,5 +27,5 @@ jobs:
         run: |
           docker run -d --name storebridge-db             -e MARIADB_DATABASE=catalogue             -e MARIADB_USER=catalogue             -e MARIADB_PASSWORD=catalogue_dev_password             -e MARIADB_ROOT_PASSWORD=root_dev_password             mariadb:11
           until docker exec storebridge-db healthcheck.sh --connect --innodb_initialized; do sleep 1; done
-          docker exec -i storebridge-db mariadb -uroot -proot_dev_password < database/init.sql
+          docker exec -i storebridge-db mariadb --database=catalogue -uroot -proot_dev_password < database/init.sql
           docker rm -f storebridge-db
