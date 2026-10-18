@@ -1,1 +1,1 @@
-{"name":"WhatsApp Catalogue PHP","dockerComposeFile":"docker-compose.yml","service":"web","workspaceFolder":"/var/www/html","forwardPorts":[80],"portsAttributes":{"80":{"label":"Catalogue website","onAutoForward":"openBrowser"}},"shutdownAction":"stopCompose"}
+{"name":"StoreBridge PHP","dockerComposeFile":"docker-compose.yml","service":"web","workspaceFolder":"/var/www/html","forwardPorts":[80],"portsAttributes":{"80":{"label":"StoreBridge website","onAutoForward":"openBrowser"}},"shutdownAction":"stopCompose"}

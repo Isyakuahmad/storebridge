@@ -2,26 +2,24 @@
 /**
  * StoreBridge database connection.
  *
- * Production credentials should NOT be committed to GitHub.
- * On InfinityFree, upload config/database.local.php with the real
- * database credentials. For local development, environment variables
- * can still be used.
+ * Supports InfinityFree via config/database.local.php and environment-based
+ * configuration for Docker or other hosts. Never commit database.local.php.
  */
 
 $localConfig = __DIR__ . '/database.local.php';
-
-if (file_exists($localConfig)) {
+if (is_file($localConfig)) {
     require $localConfig;
 }
 
-$host = $host ?? getenv('DB_HOST') ?: 'db';
-$db   = $db   ?? getenv('DB_NAME') ?: 'catalogue';
-$user = $user ?? getenv('DB_USER') ?: 'catalogue';
-$pass = $pass ?? getenv('DB_PASSWORD') ?: 'catalogue_dev_password';
+$host = $host ?? (getenv('DB_HOST') ?: 'localhost');
+$port = $port ?? (getenv('DB_PORT') ?: '3306');
+$db   = $db   ?? (getenv('DB_NAME') ?: 'catalogue');
+$user = $user ?? (getenv('DB_USER') ?: 'catalogue');
+$pass = $pass ?? (getenv('DB_PASSWORD') ?: '');
 
 try {
     $pdo = new PDO(
-        "mysql:host={$host};dbname={$db};charset=utf8mb4",
+        'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $db . ';charset=utf8mb4',
         $user,
         $pass,
         [
