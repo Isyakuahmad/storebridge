@@ -1,4 +1,4 @@
-CREATE TABLE users(id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,name VARCHAR(120) NOT NULL,email VARCHAR(190) NOT NULL UNIQUE,password_hash VARCHAR(255) NOT NULL,role ENUM('seller','admin') NOT NULL DEFAULT 'seller',account_status ENUM('active','suspended') NOT NULL DEFAULT 'active',referral_code VARCHAR(20) NULL UNIQUE,referred_by_user_id INT UNSIGNED NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,INDEX idx_users_referred_by(referred_by_user_id),FOREIGN KEY(referred_by_user_id) REFERENCES users(id) ON DELETE SET NULL)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE users(id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,name VARCHAR(120) NOT NULL,email VARCHAR(190) NOT NULL UNIQUE,phone VARCHAR(20) NULL UNIQUE,password_hash VARCHAR(255) NOT NULL,role ENUM('seller','admin') NOT NULL DEFAULT 'seller',account_status ENUM('active','suspended') NOT NULL DEFAULT 'active',referral_code VARCHAR(20) NULL UNIQUE,referred_by_user_id INT UNSIGNED NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,INDEX idx_users_referred_by(referred_by_user_id),FOREIGN KEY(referred_by_user_id) REFERENCES users(id) ON DELETE SET NULL)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE TABLE stores(id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,user_id INT UNSIGNED NOT NULL UNIQUE,name VARCHAR(160) NOT NULL,slug VARCHAR(180) NOT NULL UNIQUE,description TEXT,whatsapp_number VARCHAR(30) NOT NULL,delivery_note TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE TABLE products(id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,store_id INT UNSIGNED NOT NULL,name VARCHAR(180) NOT NULL,description TEXT,price DECIMAL(12,2) NOT NULL,category VARCHAR(100) NOT NULL,image VARCHAR(255),variations VARCHAR(255),available TINYINT(1) NOT NULL DEFAULT 1,moderation_status ENUM('pending','approved','rejected','flagged') NOT NULL DEFAULT 'pending',moderation_note TEXT,moderated_by INT UNSIGNED NULL,moderated_at TIMESTAMP NULL DEFAULT NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,INDEX(store_id,category),INDEX(moderation_status),FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE,FOREIGN KEY(moderated_by) REFERENCES users(id) ON DELETE SET NULL)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE TABLE orders(id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,store_id INT UNSIGNED NOT NULL,customer_name VARCHAR(160) NOT NULL,customer_phone VARCHAR(40) NOT NULL,customer_address TEXT NOT NULL,notes TEXT,total DECIMAL(12,2) NOT NULL,status ENUM('pending','confirmed','completed','cancelled') NOT NULL DEFAULT 'pending',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,INDEX(store_id,status),FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -59,4 +59,21 @@ CREATE TABLE subscriptions (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (plan_id) REFERENCES plans(id),
   FOREIGN KEY (payment_id) REFERENCES payments(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE registration_flags (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  related_user_id INT UNSIGNED NULL,
+  flag_type ENUM('duplicate_email_attempt','duplicate_phone_attempt','duplicate_email_phone_attempt') NOT NULL,
+  status ENUM('open','reviewed','dismissed') NOT NULL DEFAULT 'open',
+  admin_note VARCHAR(500) NULL,
+  reviewed_by INT UNSIGNED NULL,
+  reviewed_at DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_registration_flags_status_created (status, created_at),
+  INDEX idx_registration_flags_user (user_id, created_at),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (related_user_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
