@@ -8,8 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $note = trim($_POST['admin_note'] ?? '');
     if ($id > 0 && in_array($status, ['reviewed', 'dismissed', 'open'], true)) {
         $q = $pdo->prepare("UPDATE registration_flags SET status=?, admin_note=?, reviewed_by=?, reviewed_at=NOW() WHERE id=?");
-        $q->execute([$status, $note !== '' ? mb_substr($note, 0, 500) : null, $_SESSION['user_id'], $id]);
-        audit_log('registration_flag_'.$status, 'registration_flag', $id, $note !== '' ? mb_substr($note, 0, 300) : null);
+        $q->execute([$status, $note !== '' ? substr($note, 0, 500) : null, $_SESSION['user_id'], $id]);
+        audit_log('registration_flag_'.$status, 'registration_flag', $id, $note !== '' ? substr($note, 0, 300) : null);
     }
     go('/admin/registration-flags.php');
 }
