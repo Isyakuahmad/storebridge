@@ -6,7 +6,9 @@ StoreBridge is a lightweight online storefront for Nigerian small businesses. Se
 
 StoreBridge currently provides:
 
-- Seller registration and login
+- Seller registration and login with normalized email and phone duplicate detection
+- Admin review queue for duplicate registration signals (not automatic fraud decisions)
+- Public Privacy Policy, Terms of Service, and Acceptable Use Policy
 - One storefront per seller account
 - Store settings, delivery note, WhatsApp number, and seller store-link management
 - Seller account settings, password changes, and account deletion
@@ -109,6 +111,7 @@ Admin access is separate from normal seller access.
 │   ├── products.php        # Product moderation
 │   ├── users.php           # Seller management
 │   ├── audit-log.php       # Moderation/account audit trail
+│   ├── registration-flags.php # Review duplicate registration signals
 │   ├── payments.php        # Manual bank-transfer payment review
 │   └── plans.php           # Configure monthly paid-plan prices
 ├── auth/                    # Registration, login, logout
@@ -206,6 +209,14 @@ Before deploying the current registration, referral, and subscription code to an
 Run each migration only if its changes are not already present. Do not rerun `003` if the referral columns/constraint already exist, or `004` if the subscription tables already exist; those scripts are not idempotent. Run `005` only after `004` and only if the plans table exists. Back up the production database before applying schema changes. For a fresh database initialized from the current `database/init.sql`, these schema changes and prices are already included.
 
 Admins can adjust the paid-plan prices later in **Admin → Plans**. Sellers submit the sender name and transfer reference; an admin must verify the actual bank credit and confirm the payment before the paid month is activated. A transfer reference alone is not proof of payment.
+
+## Registration flags and legal pages
+
+New registrations collect a phone number and normalize Nigerian formats such as `08012345678` and `+2348012345678` to the same stored value. Duplicate email/phone attempts are blocked and recorded for administrator review. A flag is a signal only: shared business or family contact details are not, by themselves, proof of fraud. Existing accounts keep a nullable phone field until the user updates it or a verified process collects it.
+
+For an existing database, back up first and apply `database/migrations/006_registration_flags.sql` once. It adds the nullable phone field, unique phone index, and registration flag table. Do not run it twice. Fresh databases created from `database/init.sql` already include these changes.
+
+The public policy pages are `privacy.php`, `terms.php`, and `acceptable-use.php`. Review them against the actual service and obtain qualified Nigerian legal/privacy review before treating them as definitive legal advice.
 
 ## Configuration
 
