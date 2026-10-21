@@ -1,0 +1,18 @@
+<?php
+require_once 'includes/auth.php';
+$title = 'Terms of Service';
+require 'includes/header.php';
+?>
+<section class="row justify-content-center"><div class="col-lg-9">
+<h1>Terms of Service</h1><p class="text-muted">Last updated: 21 October 2026</p>
+<p>These terms apply to your use of Choosery, a service operated through StoreBridge that lets sellers publish storefronts and products and lets customers submit order details for follow-up with sellers. By using the platform, you agree to these terms. If you do not agree, do not use the service.</p>
+<h2 class="h4 mt-4">Accounts</h2><p>Provide accurate account information, keep your login credentials confidential, and notify us of suspected unauthorized use. You are responsible for activity under your account. We may restrict or suspend access when reasonably necessary for security, suspected abuse, legal compliance, or violations of these terms.</p>
+<h2 class="h4 mt-4">Seller responsibilities</h2><p>Sellers are responsible for the accuracy and legality of their listings, prices, stock availability, product claims, delivery terms, customer communications, and fulfilment of orders. Sellers must have the rights and permissions needed to publish product names, images, and other content. A listing may be held for review, flagged, rejected, or removed under our moderation rules.</p>
+<h2 class="h4 mt-4">Orders and payments</h2><p>Choosery provides storefront and order-handoff tools. An order submission is a request to contact the seller and is not a guarantee that a product is available or that a sale is complete. Sellers and customers should confirm final price, delivery, payment method, and fulfilment directly. Choosery does not currently provide escrow or act as the seller of record. Paid subscription plans are subject to the plan information shown on the platform; bank transfers are manually reviewed before a subscription is activated.</p>
+<h2 class="h4 mt-4">Fees and subscriptions</h2><p>Any applicable subscription price, billing period, and features will be displayed before you submit a payment. You must not misrepresent a transfer or submit false payment details. A payment is not confirmed until the platform administrator verifies it. Any refund or cancellation request will be assessed under applicable law and the plan details communicated to you.</p>
+<h2 class="h4 mt-4">Platform availability and content</h2><p>We may update, suspend, or discontinue features, and may remove content or limit accounts when necessary. We aim to keep the service useful and secure but do not guarantee uninterrupted availability, error-free operation, specific sales results, or permanent storage of content. Sellers should keep their own copies of important business records and product images.</p>
+<h2 class="h4 mt-4">Liability and disputes</h2><p>To the extent permitted by applicable law, users remain responsible for transactions and arrangements they make with one another. Nothing in these terms excludes rights or liabilities that cannot legally be excluded. Please first contact the relevant seller about product, delivery, or order issues; contact platform support about account or technical problems.</p>
+<h2 class="h4 mt-4">Changes and governing law</h2><p>We may revise these terms by publishing an updated version here. Use of the service after an update constitutes acceptance to the extent permitted by law. These terms are intended to operate under applicable Nigerian law, subject to any mandatory consumer protections and legal rights.</p>
+<p class="mt-4">Contact: see the <a href="/contact.php">Contact page</a>.</p>
+</div></section>
+<?php require 'includes/footer.php'; ?>
