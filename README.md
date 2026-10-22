@@ -88,6 +88,20 @@ The admin area provides:
 - Audit log
 - Platform-level product and seller visibility
 
+### Subscription payment account configuration
+
+For manual bank-transfer payments, copy `config/payments.local.example.php` to
+`config/payments.local.php` on the server and set the bank name, account name,
+and 10-digit account number. The local file is ignored by Git and must not be
+committed or shared publicly. The WhatsApp support number can also be set there.
+The subscription page reveals the bank details only after a seller chooses a
+paid plan and selects **Bank Transfer**. If the bank account is not configured,
+the page directs the seller to WhatsApp instead.
+
+After a transfer, an administrator must verify the actual bank credit before
+confirming the payment. A submitted transfer reference or WhatsApp message alone
+does not activate a subscription.
+
 Admin access is separate from normal seller access.
 
 ## Technology
