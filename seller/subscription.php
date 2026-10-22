@@ -5,6 +5,21 @@ login_required();
 $userId = (int)$_SESSION['user_id'];
 $error = '';
 $success = '';
+// Payment details are supplied by a server-local config or environment variables.
+// Never put bank account details directly in this tracked source file.
+$paymentConfig = [];
+$localPaymentConfig = __DIR__ . '/../config/payments.local.php';
+if (is_file($localPaymentConfig)) {
+    $loadedPaymentConfig = require $localPaymentConfig;
+    if (is_array($loadedPaymentConfig)) {
+        $paymentConfig = $loadedPaymentConfig;
+    }
+}
+$bankName = trim((string)($paymentConfig['bank_name'] ?? getenv('CHOOSERY_BANK_NAME') ?: ''));
+$bankAccountName = trim((string)($paymentConfig['account_name'] ?? getenv('CHOOSERY_BANK_ACCOUNT_NAME') ?: ''));
+$bankAccountNumber = trim((string)($paymentConfig['account_number'] ?? getenv('CHOOSERY_BANK_ACCOUNT_NUMBER') ?: ''));
+$whatsappNumber = preg_replace('/[^0-9]/', '', (string)($paymentConfig['whatsapp_number'] ?? getenv('CHOOSERY_SUPPORT_WHATSAPP') ?: '2348029033160'));
+$bankDetailsConfigured = $bankName !== '' && $bankAccountName !== '' && preg_match('/^\\d{10}$/', $bankAccountNumber) === 1;
 $selectedPlan = strtolower(trim((string)($_GET['plan'] ?? '')));
 if (!in_array($selectedPlan, ['moderate', 'premium'], true)) {
     $selectedPlan = '';
@@ -178,19 +193,45 @@ require '../includes/header.php';
             <?php elseif ($hasPendingPayment): ?>
                 <button type="button" class="btn btn-outline-secondary w-100" disabled>Payment awaiting review</button>
             <?php else: ?>
-                <a class="btn <?= $code === 'premium' ? 'btn-success' : 'btn-outline-success' ?> w-100 mb-3" href="#payment-<?= e($code) ?>">
+                <a class="btn <?= $code === 'premium' ? 'btn-success' : 'btn-outline-success' ?> w-100 mb-3" href="#payment-options-<?= e($code) ?>">
                     <?= $code === 'premium' ? 'Upgrade to Premium' : 'Upgrade to Moderate' ?>
                 </a>
-                <form method="post" class="border-top pt-3" id="payment-<?= e($code) ?>">
-                    <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-                    <input type="hidden" name="plan_id" value="<?= e($p['id']) ?>">
-                    <label class="form-label" for="sender-<?= e($code) ?>">Name on bank transfer</label>
-                    <input class="form-control mb-2" id="sender-<?= e($code) ?>" name="sender_name" maxlength="160" minlength="2" autocomplete="name" required>
-                    <label class="form-label" for="reference-<?= e($code) ?>">Transfer reference / narration</label>
-                    <input class="form-control mb-3" id="reference-<?= e($code) ?>" name="transfer_reference" maxlength="190" minlength="3" required>
-                    <p class="small text-muted">Transfer <?= e(money($p['monthly_price'])) ?> to the official Choosery bank account supplied by support. Submit these details only after making the transfer.</p>
-                    <button class="btn btn-success w-100" type="submit">Submit payment for review</button>
-                </form>
+                <div id="payment-options-<?= e($code) ?>" class="border-top pt-3">
+                    <p class="small fw-semibold mb-2">Choose how to pay</p>
+                    <button type="button" class="btn btn-outline-success w-100 mb-2" data-payment-toggle="bank-<?= e($code) ?>" aria-expanded="false">
+                        Bank Transfer
+                    </button>
+                    <?php
+                        $waMessage = 'Hello Choosery, I want to subscribe to the ' . $p['name'] . ' plan for ' . money($p['monthly_price']) . ' per month. Please guide me through payment.';
+                        $waUrl = 'https://wa.me/' . $whatsappNumber . '?text=' . rawurlencode($waMessage);
+                    ?>
+                    <a class="btn btn-success w-100 mb-3" href="<?= e($waUrl) ?>" target="_blank" rel="noopener noreferrer">
+                        Pay via WhatsApp
+                    </a>
+                    <div id="bank-<?= e($code) ?>" class="rounded border p-3 bg-light" hidden>
+                        <?php if ($bankDetailsConfigured): ?>
+                            <h3 class="h6">Bank account details</h3>
+                            <dl class="row small mb-3">
+                                <dt class="col-5">Bank</dt><dd class="col-7"><?= e($bankName) ?></dd>
+                                <dt class="col-5">Account name</dt><dd class="col-7"><?= e($bankAccountName) ?></dd>
+                                <dt class="col-5">Account number</dt><dd class="col-7 fw-bold"><?= e($bankAccountNumber) ?></dd>
+                                <dt class="col-5">Amount</dt><dd class="col-7 fw-bold"><?= e(money($p['monthly_price'])) ?></dd>
+                            </dl>
+                            <p class="small text-muted">Transfer the exact amount above, then submit your sender name and transfer reference. Your plan will activate only after admin verifies the payment.</p>
+                            <form method="post">
+                                <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
+                                <input type="hidden" name="plan_id" value="<?= e($p['id']) ?>">
+                                <label class="form-label" for="sender-<?= e($code) ?>">Name on bank transfer</label>
+                                <input class="form-control mb-2" id="sender-<?= e($code) ?>" name="sender_name" maxlength="160" minlength="2" autocomplete="name" required>
+                                <label class="form-label" for="reference-<?= e($code) ?>">Transfer reference / narration</label>
+                                <input class="form-control mb-3" id="reference-<?= e($code) ?>" name="transfer_reference" maxlength="190" minlength="3" required>
+                                <button class="btn btn-success w-100" type="submit">Submit payment for review</button>
+                            </form>
+                        <?php else: ?>
+                            <div class="alert alert-warning mb-0" role="alert">Bank transfer is temporarily unavailable because the payment account has not been configured on this server. Please use WhatsApp for payment instructions.</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
             <?php endif; ?>
         </div>
     </div>
@@ -229,5 +270,20 @@ require '../includes/header.php';
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-payment-toggle]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const panel = document.getElementById(button.getAttribute('data-payment-toggle'));
+            if (!panel) return;
+            const willOpen = panel.hidden;
+            panel.hidden = !willOpen;
+            button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            if (willOpen) panel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+        });
+    });
+});
+</script>
 
 <?php require '../includes/footer.php'; ?>
