@@ -5,3 +5,4 @@ uploads/*
 .DS_Store
 config/email.local.php
 config/database.local.php
+config/payments.local.php
