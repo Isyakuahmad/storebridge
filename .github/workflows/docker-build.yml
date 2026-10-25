@@ -25,7 +25,30 @@ jobs:
 
       - name: Validate database schema
         run: |
-          docker run -d --name storebridge-db             -e MARIADB_DATABASE=catalogue             -e MARIADB_USER=catalogue             -e MARIADB_PASSWORD=catalogue_dev_password             -e MARIADB_ROOT_PASSWORD=root_dev_password             mariadb:11
-          until docker exec storebridge-db healthcheck.sh --connect --innodb_initialized; do sleep 1; done
+          docker run -d --name storebridge-db \
+            -e MARIADB_DATABASE=catalogue \
+            -e MARIADB_USER=catalogue \
+            -e MARIADB_PASSWORD=catalogue_dev_password \
+            -e MARIADB_ROOT_PASSWORD=root_dev_password \
+            mariadb:11
+          until docker run --rm --link storebridge-db:db mariadb:11 mariadb-admin ping -h db -uroot -proot_dev_password --silent; do sleep 1; done
           docker exec -i storebridge-db mariadb --database=catalogue -uroot -proot_dev_password < database/init.sql
           docker rm -f storebridge-db
+
+  deploy:
+    name: Deploy to InfinityFree
+    needs: docker-build  # 👈 Prevents deployment if tests fail
+    if: github.event_name == 'push' && github.ref == 'refs/heads/launch-prep'  # 👈 Runs ONLY when pushing to launch-prep
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get latest code
+        uses: actions/checkout@v4
+
+      - name: Sync files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ftpupload.net
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: /htdocs/
