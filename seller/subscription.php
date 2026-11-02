@@ -95,16 +95,16 @@ $planFeatures = [
         'Create a store and catalogue',
         'Public storefront page',
         'Receive orders and hand them off through WhatsApp',
-        'Core selling tools',
+        'Up to 15 products',
     ],
     'moderate' => [
         'Everything in Free',
-        'Higher product limits and additional store tools as they become available',
+        'Up to 50 products',
         'Expanded reports and order-management tools as they become available',
     ],
     'premium' => [
         'Everything in Moderate',
-        'More product and order-management capabilities as they become available',
+        'Up to 200 products',
         'Additional reports and business-growth tools as they become available',
         'Store-promotion tools when released',
     ],
@@ -239,7 +239,7 @@ require '../includes/header.php';
 </div>
 
 <div class="alert alert-info" role="note">
-    <strong>Feature availability:</strong> product-limit changes, advanced reports, and promotional tools are not yet enforced by the current app. They are listed as planned benefits, not as features already active. Please confirm their availability before paying for a plan based on those benefits.
+    <strong>Product allowances:</strong> Free includes 15 products, Moderate includes 50 products, and Premium includes 200 products. These limits are enforced when a seller adds a product. Advanced reports and promotional tools are separate planned features and are not yet available.
 </div>
 
 <div class="card card-body">
