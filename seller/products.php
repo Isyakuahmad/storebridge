@@ -31,6 +31,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 $q=$pdo->prepare('SELECT * FROM products WHERE store_id=? ORDER BY created_at DESC');
 $q->execute([$s['id']]);
 $ps=$q->fetchAll();
+$allowance=product_limit_for_user();
+$productCount=count($ps);
+$atLimit=$productCount >= $allowance['limit'];
 
 $title='Products';
 require '../includes/header.php';
@@ -51,9 +54,12 @@ require '../includes/header.php';
     <div>
         <h1 class="mb-1">Products</h1>
         <p class="text-muted mb-0">Manage your catalogue products, prices, images and availability.</p>
+        <p class="small text-muted mb-0"><?=e($productCount)?> / <?=e($allowance['limit'])?> products · <?=e(ucfirst($allowance['plan_code']))?> plan</p>
     </div>
-    <a class="btn btn-success" href="/seller/add-product.php">Add product</a>
+    <?php if(!$atLimit): ?><a class="btn btn-success" href="/seller/add-product.php">Add product</a><?php else: ?><a class="btn btn-outline-success" href="/seller/subscription.php">Upgrade plan</a><?php endif; ?>
 </div>
+
+<?php if($atLimit): ?><div class="alert alert-warning" role="status">You have reached your <?=e(ucfirst($allowance['plan_code']))?> plan limit of <?=e($allowance['limit'])?> products. Delete a product or <a href="/seller/subscription.php">upgrade your plan</a> to add more.</div><?php endif; ?>
 
 <div class="row g-3">
 <?php foreach($ps as $p):?>
