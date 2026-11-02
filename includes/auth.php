@@ -41,6 +41,24 @@ function store() {
     return $q->fetch();
 }
 function money($v) { return '₦' . number_format((float)$v, 2); }
+
+/** Return the active subscription's product allowance; expired plans fall back to Free. */
+function product_limit_for_user($userId = null) {
+    global $pdo;
+    $userId = (int)($userId ?? ($_SESSION['user_id'] ?? 0));
+    $q = $pdo->prepare(
+        "SELECT p.code FROM subscriptions s
+         JOIN plans p ON p.id = s.plan_id
+         WHERE s.user_id = ? AND s.status = 'active'
+           AND s.starts_at <= NOW() AND s.ends_at > NOW()
+         ORDER BY s.ends_at DESC LIMIT 1"
+    );
+    $q->execute([$userId]);
+    $code = (string)($q->fetchColumn() ?: 'free');
+    $limits = ['free' => 15, 'moderate' => 50, 'premium' => 200];
+    if (!isset($limits[$code])) $code = 'free';
+    return ['plan_code' => $code, 'limit' => $limits[$code]];
+}
 function cart_count() { return array_sum($_SESSION['cart'] ?? []); }
 function audit_log($action, $targetType, $targetId = null, $details = null) {
     global $pdo;
