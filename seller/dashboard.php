@@ -83,6 +83,10 @@ $storeUrl = $s ? app_url() . '/public/store.php?slug=' . rawurlencode($s['slug']
 <?php else: ?>
     <div class="card card-body mb-4">
         <h2 class="h5 mb-2">Your store link</h2>
+        <?php if (($s['verification_status'] ?? 'unsubmitted') === 'verified'): ?><span class="badge text-bg-success mb-2">Business profile reviewed</span>
+        <?php elseif (($s['verification_status'] ?? '') === 'pending'): ?><span class="badge text-bg-warning mb-2">Verification pending</span>
+        <?php elseif (($s['verification_status'] ?? '') === 'rejected'): ?><span class="badge text-bg-danger mb-2">Verification needs changes</span>
+        <?php else: ?><span class="badge text-bg-secondary mb-2">Not submitted for review</span><?php endif; ?>
         <p class="text-muted mb-2">Share one link so customers can browse your catalogue and place orders.</p>
         <div class="d-flex align-items-center gap-2 mb-3">
             <button type="button" class="btn btn-outline-secondary btn-sm" id="copyStoreLink" aria-label="Copy store link" title="Copy store link" data-store-link="<?= e($storeUrl) ?>">Copy link</button>

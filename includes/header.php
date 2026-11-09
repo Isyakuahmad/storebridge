@@ -39,6 +39,7 @@
             <li class="nav-item"><a class="nav-link text-warning" href="/admin/plans.php">Plans</a></li>
             <li class="nav-item"><a class="nav-link text-warning" href="/admin/referrals.php">Referrals</a></li>
             <li class="nav-item"><a class="nav-link text-warning" href="/admin/registration-flags.php">Registration flags</a></li>
+            <li class="nav-item"><a class="nav-link text-warning" href="/admin/seller-verification.php">Seller verification</a></li>
           <?php endif;?>
           <li class="nav-item ms-lg-2"><a class="btn btn-sm btn-light" href="/auth/logout.php">Log out</a></li>
         <?php else:?>
