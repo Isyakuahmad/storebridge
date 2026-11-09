@@ -20,9 +20,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role = $_POST['account_type'] ?? '';
     $name = trim((string)($pending['name'] ?? ''));
     if ($name === '') $name = trim((string)($_POST['name'] ?? ''));
-    $phone = normalize_google_registration_phone($_POST['phone'] ?? '');
+    $rawPhone = trim((string)($_POST['phone'] ?? ''));
+    $phone = normalize_google_registration_phone($rawPhone);
     if (!in_array($role, ['buyer', 'seller'], true) || $name === '') {
         $error = 'Choose an account type and provide your name.';
+    } elseif ($rawPhone !== '' && $phone === '') {
+        $error = 'Enter a valid phone number or leave it blank if you are joining as a buyer.';
     } elseif ($role === 'seller' && $phone === '') {
         $error = 'A valid phone number is required for seller accounts.';
     } else {
