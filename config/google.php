@@ -7,9 +7,12 @@ $googleLocalConfig = __DIR__ . '/google.local.php';
 if (is_file($googleLocalConfig)) {
     require $googleLocalConfig;
 }
-$googleClientId = trim((string)($googleClientId ?? getenv('GOOGLE_CLIENT_ID') ?: ''));
-$googleClientSecret = trim((string)($googleClientSecret ?? getenv('GOOGLE_CLIENT_SECRET') ?: ''));
-$googleRedirectUri = trim((string)($googleRedirectUri ?? getenv('GOOGLE_REDIRECT_URI') ?: ''));
+if (!isset($googleClientId) || $googleClientId === '') $googleClientId = getenv('GOOGLE_CLIENT_ID') ?: '';
+if (!isset($googleClientSecret) || $googleClientSecret === '') $googleClientSecret = getenv('GOOGLE_CLIENT_SECRET') ?: '';
+if (!isset($googleRedirectUri) || $googleRedirectUri === '') $googleRedirectUri = getenv('GOOGLE_REDIRECT_URI') ?: '';
+$googleClientId = trim((string)$googleClientId);
+$googleClientSecret = trim((string)$googleClientSecret);
+$googleRedirectUri = trim((string)$googleRedirectUri);
 if ($googleRedirectUri === '') {
     $googleAppUrl = rtrim((string)(getenv('APP_URL') ?: 'https://storebridge.freedev.app'), '/');
     $googleRedirectUri = $googleAppUrl . '/auth/google-callback.php';
