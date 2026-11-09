@@ -1,6 +1,6 @@
 <?php
 require_once '../includes/auth.php';
-login_required();
+seller_required();
 
 $userId = (int)$_SESSION['user_id'];
 $error = '';

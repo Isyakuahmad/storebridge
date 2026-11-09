@@ -1,5 +1,18 @@
 <?php
 if (session_status() !== PHP_SESSION_ACTIVE) {
+    // Harden session handling before PHP creates or resumes the session.
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+    ini_set('session.use_trans_sid', '0');
+    $isHttps = (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off')
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https');
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
     session_start();
 }
 require_once __DIR__ . '/../config/database.php';
@@ -33,7 +46,22 @@ function is_admin() {
     $u = $q->fetch();
     return $u && $u['role'] === 'admin' && $u['account_status'] === 'active';
 }
-function admin_required() { login_required(); if (!is_admin()) go('/seller/dashboard.php'); }
+function admin_required() {
+    login_required();
+    if (!is_admin()) go('/seller/dashboard.php');
+}
+function seller_required() {
+    global $pdo;
+    login_required();
+    $q = $pdo->prepare('SELECT role FROM users WHERE id=? AND account_status=\'active\'');
+    $q->execute([$_SESSION['user_id']]);
+    $role = $q->fetchColumn();
+    if ($role !== 'seller') {
+        if ($role === 'admin') go('/admin/');
+        if ($role === 'buyer') go('/buyer/dashboard.php');
+        go('/auth/login.php');
+    }
+}
 function store() {
     global $pdo;
     $q = $pdo->prepare('SELECT * FROM stores WHERE user_id=?');

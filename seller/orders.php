@@ -1,6 +1,6 @@
 <?php
 require_once '../includes/auth.php';
-login_required();
+seller_required();
 $s = store();
 if (!$s) go('/seller/store.php');
 
@@ -12,9 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Choose a valid order status.';
     } else {
         $q = $pdo->prepare('UPDATE orders SET status=? WHERE id=? AND store_id=?');
-        $q->execute([$status, (int)($_POST['id'] ?? 0), $s['id']]);
-        if (!$q->rowCount()) $notice = 'No order status change was made.';
-        else $notice = 'Order status updated.';
+        $orderId = (int)($_POST['id'] ?? 0);
+        $q->execute([$status, $orderId, $s['id']]);
+        if (!$q->rowCount()) {
+            // Do not reveal whether an order ID belongs to another seller.
+            $notice = 'No order status change was made.';
+        } else {
+            audit_log('seller_order_status_updated', 'order', $orderId, 'New status: ' . $status);
+            $notice = 'Order status updated.';
+        }
     }
 }
 
@@ -25,8 +31,14 @@ $orderItems = [];
 if ($os) {
     $ids = array_map(static fn($o) => (int)$o['id'], $os);
     $in = implode(',', array_fill(0, count($ids), '?'));
-    $q = $pdo->prepare("SELECT order_id,product_name,unit_price,quantity FROM order_items WHERE order_id IN ($in) ORDER BY id");
-    $q->execute($ids);
+    // Re-check tenant ownership while loading line items; never rely only on IDs
+    // collected by an earlier query when accessing customer order details.
+    $q = $pdo->prepare("SELECT oi.order_id,oi.product_name,oi.unit_price,oi.quantity
+                        FROM order_items oi
+                        INNER JOIN orders o ON o.id=oi.order_id
+                        WHERE oi.order_id IN ($in) AND o.store_id=?
+                        ORDER BY oi.id");
+    $q->execute([...$ids, $s['id']]);
     foreach ($q as $item) $orderItems[(int)$item['order_id']][] = $item;
 }
 $title = 'Orders';

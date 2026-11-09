@@ -8,12 +8,17 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $u=$q->fetch();
 
     if($u&&password_verify($_POST['password']??'',$u['password_hash'])){
-        if($u['account_status']==='suspended'){
+        if($u['account_status']!=='active'){
             $error='This account is suspended.';
         }else{
             session_regenerate_id(true);
             $_SESSION['user_id']=$u['id'];
-            go('/seller/dashboard.php');
+            if ($u['role'] === 'admin') go('/admin/');
+            if ($u['role'] === 'seller') go('/seller/dashboard.php');
+            if ($u['role'] === 'buyer') go('/buyer/dashboard.php');
+            $_SESSION = [];
+            session_destroy();
+            $error='This account type cannot access the platform yet.';
         }
     }else{
         $error='Invalid credentials.';
