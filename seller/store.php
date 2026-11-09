@@ -31,11 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         try {
             if ($s) {
-                $q = $pdo->prepare('UPDATE stores SET name=?,slug=?,description=?,whatsapp_number=?,delivery_note=?,business_country=?,business_state=?,business_city=?,business_area=?,business_address=?,verification_status=IF(verification_status=\'verified\',\'pending\',verification_status),verification_submitted_at=IF(verification_status=\'verified\',NOW(),verification_submitted_at),verification_reviewed_by=IF(verification_status=\'verified\',NULL,verification_reviewed_by),verification_reviewed_at=IF(verification_status=\'verified\',NULL,verification_reviewed_at) WHERE id=? AND user_id=?');
+                $q = $pdo->prepare('UPDATE stores SET name=?,slug=?,description=?,whatsapp_number=?,delivery_note=?,business_country=?,business_state=?,business_city=?,business_area=?,business_address=?,verification_status='pending',verification_submitted_at=NOW(),verification_reviewed_by=NULL,verification_reviewed_at=NULL,verification_note=NULL WHERE id=? AND user_id=?');
                 $q->execute([$n,$slug,$description,$w,$deliveryNote,$country,$state,$city,$area ?: null,$address ?: null,$s['id'],$_SESSION['user_id']]);
             } else {
-                $q = $pdo->prepare('INSERT INTO stores(user_id,name,slug,description,whatsapp_number,delivery_note,business_country,business_state,business_city,business_area,business_address) VALUES(?,?,?,?,?,?,?,?,?,?,?)');
-                $q->execute([$_SESSION['user_id'],$n,$slug,$description,$w,$deliveryNote,$country,$state,$city,$area ?: null,$address ?: null]);
+                $q = $pdo->prepare('INSERT INTO stores(user_id,name,slug,description,whatsapp_number,delivery_note,business_country,business_state,business_city,business_area,business_address,verification_status,verification_submitted_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,NOW())');
+                $q->execute([$_SESSION['user_id'],$n,$slug,$description,$w,$deliveryNote,$country,$state,$city,$area ?: null,$address ?: null,'pending']);
             }
             go('/seller/dashboard.php');
         } catch (PDOException $x) {
