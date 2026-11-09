@@ -1,7 +1,11 @@
 <?php
 require_once '../includes/auth.php';
 $pending = $_SESSION['google_pending_user'] ?? null;
-if (!is_array($pending) || empty($pending['sub']) || empty($pending['email']) || time() - (int)($pending['created_at'] ?? 0) > 600) {\n    unset($_SESSION['google_pending_user']);\n    $_SESSION['auth_notice'] = 'Your Google registration session expired. Please start again.';\n    go('/auth/login.php');\n}
+if (!is_array($pending) || empty($pending['sub']) || empty($pending['email']) || time() - (int)($pending['created_at'] ?? 0) > 600) {
+    unset($_SESSION['google_pending_user']);
+    $_SESSION['auth_notice'] = 'Your Google registration session expired. Please start again.';
+    go('/auth/login.php');
+}
 
 function normalize_google_registration_phone($value) {
     $digits = preg_replace('/\D+/', '', (string)$value);
