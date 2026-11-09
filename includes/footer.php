@@ -1,1 +1,17 @@
-</main><footer class="border-top py-4 mt-4"><div class="container text-center text-muted small"><div class="mb-2">Choosery — simple storefronts for Nigerian small businesses.</div><div class="d-flex flex-wrap justify-content-center gap-3"><a class="text-muted" href="/about.php">About</a><a class="text-muted" href="/public/sellers.php">Sellers</a><a class="text-muted" href="/contact.php">Contact</a><a class="text-muted" href="/privacy.php">Privacy</a><a class="text-muted" href="/terms.php">Terms</a><a class="text-muted" href="/acceptable-use.php">Acceptable use</a></div></div></footer></body></html>
+</main>
+<footer class="storebridge-footer border-top py-4 mt-4">
+  <div class="container text-center text-muted small">
+    <div class="mb-2">Choosery — simple storefronts for Nigerian small businesses.</div>
+    <div class="d-flex flex-wrap justify-content-center gap-3">
+      <a class="text-muted" href="/about.php">About</a>
+      <a class="text-muted" href="/public/sellers.php">Sellers</a>
+      <a class="text-muted" href="/contact.php">Contact</a>
+      <a class="text-muted" href="/privacy.php">Privacy</a>
+      <a class="text-muted" href="/terms.php">Terms</a>
+      <a class="text-muted" href="/acceptable-use.php">Acceptable use</a>
+    </div>
+  </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+</body>
+</html>
