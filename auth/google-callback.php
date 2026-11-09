@@ -56,6 +56,7 @@ try {
             $_SESSION['auth_notice'] = 'A Choosery account already uses this email. Sign in with that account first, then connect Google from your account page.';
             go($googleReturnPath);
         }
+        $identity['created_at'] = time();
         $_SESSION['google_pending_user'] = $identity;
         go('/auth/google-choose-role.php');
     }
