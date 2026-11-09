@@ -22,6 +22,7 @@
     <div class="collapse navbar-collapse" id="storebridgeNavigation">
       <ul class="navbar-nav ms-auto align-items-lg-center">
         <li class="nav-item"><a class="nav-link" href="/#how-it-works">How it works</a></li>
+        <li class="nav-item"><a class="nav-link" href="/public/products.php">Explore products</a></li>
         <li class="nav-item"><a class="nav-link" href="/public/sellers.php">Explore sellers</a></li>
         <li class="nav-item"><a class="nav-link" href="/contact.php">Contact</a></li>
         <?php if(!empty($_SESSION['user_id'])):?>
