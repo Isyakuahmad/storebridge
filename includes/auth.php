@@ -1,5 +1,13 @@
 <?php
 if (session_status() !== PHP_SESSION_ACTIVE) {
+    $secureCookie = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => $secureCookie,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
     session_start();
 }
 require_once __DIR__ . '/../config/database.php';
@@ -25,6 +33,21 @@ function login_required() {
         go('/auth/login.php');
     }
 }
+function current_user_role() {
+    global $pdo;
+    static $cachedRole = false;
+    if (empty($_SESSION['user_id'])) return null;
+    if ($cachedRole !== false) return $cachedRole;
+    $q = $pdo->prepare('SELECT role FROM users WHERE id=? LIMIT 1');
+    $q->execute([$_SESSION['user_id']]);
+    $role = $q->fetchColumn();
+    $cachedRole = $role ?: null;
+    return $cachedRole;
+}
+function seller_required() {
+    login_required();
+    if (!in_array(current_user_role(), ['seller', 'admin'], true)) go('/buyer/dashboard.php');
+}
 function is_admin() {
     global $pdo;
     if (empty($_SESSION['user_id'])) return false;
@@ -33,7 +56,12 @@ function is_admin() {
     $u = $q->fetch();
     return $u && $u['role'] === 'admin' && $u['account_status'] === 'active';
 }
-function admin_required() { login_required(); if (!is_admin()) go('/seller/dashboard.php'); }
+function admin_required() {
+    login_required();
+    if (!is_admin()) {
+        go(current_user_role() === 'buyer' ? '/buyer/dashboard.php' : '/seller/dashboard.php');
+    }
+}
 function store() {
     global $pdo;
     $q = $pdo->prepare('SELECT * FROM stores WHERE user_id=?');
