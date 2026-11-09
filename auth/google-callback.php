@@ -3,16 +3,17 @@ require_once '../includes/auth.php';
 require_once '../includes/google_oauth.php';
 
 $flow = $_SESSION['google_oauth'] ?? null;
+$googleReturnPath = !empty($_SESSION['user_id']) ? (current_user_role() === 'buyer' ? '/buyer/dashboard.php' : (current_user_role() === 'admin' ? '/admin/' : '/seller/account.php')) : '/auth/login.php';
 unset($_SESSION['google_oauth']);
 if (!is_array($flow) || empty($flow['state']) || empty($flow['nonce']) ||
     empty($flow['verifier']) || time() - (int)($flow['started_at'] ?? 0) > 600 ||
     !isset($_GET['state']) || !hash_equals((string)$flow['state'], (string)$_GET['state'])) {
     $_SESSION['auth_notice'] = 'Google sign-in expired or could not be verified. Please try again.';
-    go('/auth/login.php');
+    go($googleReturnPath);
 }
 if (!empty($_GET['error']) || empty($_GET['code'])) {
     $_SESSION['auth_notice'] = 'Google sign-in was cancelled or could not be completed.';
-    go('/auth/login.php');
+    go($googleReturnPath);
 }
 
 try {
@@ -42,7 +43,7 @@ try {
         $q->execute([$identity['sub'], $userId]);
         audit_log('google_account_linked', 'user', $userId, 'Google identity linked after authenticated session and matching verified email.');
         $_SESSION['auth_notice'] = 'Your Google account is now linked to Choosery.';
-        go('/seller/account.php');
+        go(current_user_role() === 'buyer' ? '/buyer/dashboard.php' : (current_user_role() === 'admin' ? '/admin/' : '/seller/account.php'));
     }
 
     $q = $pdo->prepare('SELECT id,role,account_status FROM users WHERE google_sub=? LIMIT 1');
@@ -53,14 +54,14 @@ try {
         $q->execute([$identity['email']]);
         if ($q->fetchColumn()) {
             $_SESSION['auth_notice'] = 'A Choosery account already uses this email. Sign in with that account first, then connect Google from your account page.';
-            go('/auth/login.php');
+            go($googleReturnPath);
         }
         $_SESSION['google_pending_user'] = $identity;
         go('/auth/google-choose-role.php');
     }
     if ($user['account_status'] !== 'active') {
         $_SESSION['auth_notice'] = 'This Choosery account is suspended. Contact support if you believe this is a mistake.';
-        go('/auth/login.php');
+        go($googleReturnPath);
     }
     session_regenerate_id(true);
     $_SESSION['user_id'] = (int)$user['id'];
@@ -69,5 +70,5 @@ try {
 } catch (Throwable $error) {
     error_log('Choosery Google authentication error: ' . $error->getMessage());
     $_SESSION['auth_notice'] = $error instanceof RuntimeException ? $error->getMessage() : 'Google sign-in could not be completed. Please try again.';
-    go('/auth/login.php');
+    go($googleReturnPath);
 }
