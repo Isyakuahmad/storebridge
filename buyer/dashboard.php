@@ -13,6 +13,7 @@ $buyer = $q->fetch();
 <div class="card card-body col-lg-7 mb-3">
     <h2 class="h5">Your account</h2>
     <p class="mb-1"><?=e($buyer['email'] ?? '')?></p>
+    <a class="small" href="/auth/forgot-password.php">Set or reset a password</a>
     <?php if (!empty($buyer['google_sub'])): ?>
         <span class="badge text-bg-success align-self-start">Google account connected</span>
     <?php else: ?>
