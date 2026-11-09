@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/auth.php';
 $pending = $_SESSION['google_pending_user'] ?? null;
-if (!is_array($pending) || empty($pending['sub']) || empty($pending['email'])) go('/auth/login.php');
+if (!is_array($pending) || empty($pending['sub']) || empty($pending['email']) || time() - (int)($pending['created_at'] ?? 0) > 600) {\n    unset($_SESSION['google_pending_user']);\n    $_SESSION['auth_notice'] = 'Your Google registration session expired. Please start again.';\n    go('/auth/login.php');\n}
 
 function normalize_google_registration_phone($value) {
     $digits = preg_replace('/\D+/', '', (string)$value);
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $q->execute([$phone]);
                 if ($q->fetchColumn()) throw new RuntimeException('That phone number is already associated with a Choosery account.');
             }
-            $referralCode = preg_replace('/[^A-Za-z0-9]/', '', (string)($_SESSION['referral_code'] ?? ''));
+            $referralCode = $role === 'seller' ? preg_replace('/[^A-Za-z0-9]/', '', (string)($_SESSION['referral_code'] ?? '')) : '';
             $referrerId = null;
             if ($referralCode !== '') {
                 $q = $pdo->prepare('SELECT id FROM users WHERE referral_code=? AND account_status=?');
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $q = $pdo->prepare('INSERT INTO users(name,email,phone,password_hash,role,google_sub,referred_by_user_id) VALUES(?,?,?,?,?,?,?)');
             $q->execute([$name, $pending['email'], $phone !== '' ? $phone : null, null, $role, $pending['sub'], $referrerId]);
             $newUserId = (int)$pdo->lastInsertId();
-            ensure_referral_code($newUserId);
+            if ($role === 'seller') ensure_referral_code($newUserId);
             $pdo->commit();
             session_regenerate_id(true);
             unset($_SESSION['google_pending_user'], $_SESSION['referral_code'], $_SESSION['csrf']);
