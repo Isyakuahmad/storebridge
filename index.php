@@ -154,9 +154,9 @@ require 'includes/header.php';
             error_log('Choosery public plans could not be loaded: ' . $ex->getMessage());
         }
         $publicPlanFeatures = [
-            'free' => ['Create a store and catalogue', 'Public storefront page', 'Orders handed off through WhatsApp', 'Core selling tools'],
-            'moderate' => ['Everything in Free', 'Higher product limits and more store tools as they become available', 'Expanded reports and order tools as they become available'],
-            'premium' => ['Everything in Moderate', 'More product and order-management tools as they become available', 'Additional reports and growth tools as they become available', 'Store-promotion tools when released'],
+            'free' => ['Create a store and catalogue', 'Up to 15 products', 'Public storefront page', 'Orders handed off through WhatsApp'],
+            'moderate' => ['Everything in Free', 'Up to 50 products'],
+            'premium' => ['Everything in Moderate', 'Up to 200 products'],
         ];
         ?>
         <div class="row g-3">
@@ -186,7 +186,7 @@ require 'includes/header.php';
                 </div>
             <?php endforeach; ?>
         </div>
-        <p class="small text-muted text-center mt-3 mb-0">Some advanced limits, reports and promotional tools are planned and are not yet enforced by the current app. Confirm feature availability before paying for a plan based on those benefits.</p>
+        <p class="small text-muted text-center mt-3 mb-0">Product limits are enforced by the app: Free 15, Moderate 50, Premium 200. Advanced reports and promotional tools are not yet available.</p>
     </section>
 
     <section class="bg-white border rounded-3 p-4 p-md-5 text-center">
