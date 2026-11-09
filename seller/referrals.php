@@ -1,6 +1,6 @@
 <?php
 require_once '../includes/auth.php';
-login_required();
+seller_required();
 
 $referralCode = ensure_referral_code($_SESSION['user_id']);
 $referralUrl = referral_url($referralCode);
