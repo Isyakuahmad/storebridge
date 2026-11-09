@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/auth.php';
+require_once '../includes/google_oauth.php';
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET['ref'])) {
     $ref = preg_replace('/[^A-Za-z0-9]/', '', $_GET['ref']);
     if ($ref) $_SESSION['referral_code'] = $ref;
@@ -70,9 +71,19 @@ $title = 'Register';
 require '../includes/header.php';
 ?>
 <h1>Register</h1>
-<p class="text-muted">Create your Choosery seller account.</p>
+<p class="text-muted">Create a buyer or seller account on Choosery.</p>
 <?php if ($referralCode): ?><div class="alert alert-success">You were invited to join Choosery through a referral.</div><?php endif; ?>
 <?php if (!empty($error)): ?><div class="alert alert-danger"><?=e($error)?></div><?php endif; ?>
+<div class="card card-body col-lg-6 mb-3">
+    <h2 class="h6">Register with Google</h2>
+    <p class="small text-muted">Choose buyer or seller after Google verifies your email address.</p>
+    <?php if(google_oauth_enabled()):?>
+        <a class="btn btn-outline-dark w-100" href="/auth/google-start.php">Continue with Google</a>
+    <?php else:?>
+        <button class="btn btn-outline-secondary w-100" type="button" disabled>Google sign-in setup pending</button>
+    <?php endif;?>
+</div>
+<div class="text-muted small mb-3">Or create a seller account with email and password:</div>
 <form method="post" class="card card-body col-lg-6">
 <input type="hidden" name="csrf" value="<?=e(csrf())?>">
 <input type="hidden" name="referral_code" value="<?=e($referralCode)?>">
@@ -81,7 +92,7 @@ require '../includes/header.php';
 <label class="form-label" for="reg-phone">Phone number</label><input id="reg-phone" class="form-control mb-2" type="tel" name="phone" autocomplete="tel" placeholder="e.g. 08012345678 or +2348012345678" value="<?=e($_POST['phone'] ?? '')?>" required>
 <label class="form-label" for="reg-password">Password</label><input id="reg-password" class="form-control mb-2" type="password" name="password" autocomplete="new-password" placeholder="Password (8+ characters)" minlength="8" required>
 <p class="small text-muted">By registering, you agree to our <a href="/terms.php">Terms</a>, <a href="/privacy.php">Privacy Policy</a>, and <a href="/acceptable-use.php">Acceptable Use Policy</a>.</p>
-<button class="btn btn-success">Register</button>
+<button class="btn btn-success">Register as seller</button>
 <div class="text-center mt-3 text-muted">Already registered? <a href="/auth/login.php" class="fw-semibold">Log in.</a></div>
 </form>
 <?php require '../includes/footer.php'; ?>

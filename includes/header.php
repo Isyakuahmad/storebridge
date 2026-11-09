@@ -1,4 +1,4 @@
-<?php require_once __DIR__.'/auth.php';?>
+<?php require_once __DIR__.'/auth.php'; $navRole = current_user_role(); ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -25,7 +25,10 @@
         <li class="nav-item"><a class="nav-link" href="/public/products.php">Explore products</a></li>
         <li class="nav-item"><a class="nav-link" href="/public/sellers.php">Explore sellers</a></li>
         <li class="nav-item"><a class="nav-link" href="/contact.php">Contact</a></li>
-        <?php if(!empty($_SESSION['user_id'])):?>
+        <?php if(!empty($_SESSION['user_id']) && $navRole === 'buyer'):?>
+          <li class="nav-item"><a class="nav-link" href="/buyer/dashboard.php">My account</a></li>
+          <li class="nav-item ms-lg-2"><a class="btn btn-sm btn-light" href="/auth/logout.php">Log out</a></li>
+        <?php elseif(!empty($_SESSION['user_id'])):?>
           <li class="nav-item"><a class="nav-link" href="/seller/dashboard.php">Dashboard</a></li>
           <li class="nav-item"><a class="nav-link" href="/seller/store.php">My store</a></li>
           <li class="nav-item"><a class="nav-link" href="/seller/products.php">Products</a></li>
@@ -33,7 +36,7 @@
           <li class="nav-item"><a class="nav-link" href="/seller/subscription.php">Plans &amp; payments</a></li>
           <li class="nav-item"><a class="nav-link" href="/seller/referrals.php">Referrals</a></li>
           <li class="nav-item"><a class="nav-link" href="/seller/account.php">Account</a></li>
-          <?php if(is_admin()):?>
+          <?php if($navRole === 'admin'):?>
             <li class="nav-item"><a class="nav-link text-warning" href="/admin/">Admin</a></li>
             <li class="nav-item"><a class="nav-link text-warning" href="/admin/payments.php">Payments</a></li>
             <li class="nav-item"><a class="nav-link text-warning" href="/admin/plans.php">Plans</a></li>
@@ -44,7 +47,7 @@
           <li class="nav-item ms-lg-2"><a class="btn btn-sm btn-light" href="/auth/logout.php">Log out</a></li>
         <?php else:?>
           <li class="nav-item"><a class="nav-link" href="/auth/login.php">Log in</a></li>
-          <li class="nav-item ms-lg-2"><a class="btn btn-sm btn-light" href="/auth/register.php">Create a store</a></li>
+          <li class="nav-item ms-lg-2"><a class="btn btn-sm btn-light" href="/auth/register.php">Create an account</a></li>
         <?php endif;?>
       </ul>
     </div>

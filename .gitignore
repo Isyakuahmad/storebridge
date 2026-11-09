@@ -6,3 +6,4 @@ uploads/*
 config/email.local.php
 config/database.local.php
 config/payments.local.php
+config/google.local.php

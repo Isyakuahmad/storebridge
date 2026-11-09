@@ -478,3 +478,24 @@ The `main` branch is treated as the stable branch. Production-facing changes sho
 ## License
 
 No public license has been added yet. Treat this repository as proprietary unless a license is added by the project owner.
+
+
+## Google sign-in (buyers and sellers)
+
+Choosery supports Google OpenID Connect for buyer and seller accounts. New Google users choose an account type after Google verifies their email. Seller sign-up also requires a phone number; buyer sign-up does not.
+
+### Google Cloud configuration
+
+1. Create a Google Cloud project and configure the OAuth consent screen.
+2. Create an OAuth client with application type **Web application**.
+3. Add this exact authorized redirect URI: `https://storebridge.freedev.app/auth/google-callback.php`.
+4. Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` as server environment variables, or copy `config/google.local.example.php` to the untracked `config/google.local.php` and enter the values there.
+5. Never commit the client secret. The OAuth flow uses authorization code + PKCE, state/nonce validation, and server-side ID-token signature and claim verification.
+
+### Existing database
+
+Back up the database, then apply `database/migrations/008_google_oauth_buyers.sql` once. This migration adds buyer account roles and the unique Google subject field and permits Google-first accounts to set a password later. It is separate from migration 007.
+
+Existing email/password accounts are not automatically linked merely because a Google email matches. The user must first sign in to the existing Choosery account and then connect Google from account settings. Google must report the same verified email address.
+
+Google sign-in is not active until the OAuth client credentials are configured and migration 008 has been applied.

@@ -1,9 +1,9 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../config/uploads.php';
-login_required();
+seller_required();
 
-$q=$pdo->prepare('SELECT id,name,email,password_hash,role FROM users WHERE id=?');
+$q=$pdo->prepare('SELECT id,name,email,password_hash,role,google_sub FROM users WHERE id=?');
 $q->execute([$_SESSION['user_id']]);
 $u=$q->fetch();
 
@@ -39,20 +39,24 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $new=$_POST['new_password']??'';
         $confirm=$_POST['confirm_password']??'';
 
-        if(!password_verify($current,$u['password_hash'])){
+        if(!empty($u['password_hash']) && !password_verify($current,$u['password_hash'])){
             $error='Current password is incorrect.';
         }elseif(strlen($new)<8){
             $error='New password must be at least 8 characters.';
         }elseif($new!==$confirm){
             $error='New passwords do not match.';
         }else{
+            $newHash = password_hash($new,PASSWORD_DEFAULT);
             $q=$pdo->prepare('UPDATE users SET password_hash=? WHERE id=?');
-            $q->execute([password_hash($new,PASSWORD_DEFAULT),$u['id']]);
+            $q->execute([$newHash,$u['id']]);
+            $u['password_hash'] = $newHash;
             $success='Password updated successfully.';
         }
     }elseif($action==='delete'){
         if($u['role']==='admin'){
             $error='Admin accounts cannot be deleted from here.';
+        }elseif(empty($u['password_hash'])){
+            $error='Set a password through password recovery before deleting this account.';
         }elseif(!password_verify($_POST['delete_password']??'',$u['password_hash'])){
             $error='Current password is incorrect.';
         }elseif(trim($_POST['delete_confirmation']??'')!=='DELETE'){
@@ -88,6 +92,7 @@ $title='Account settings';
 require '../includes/header.php';
 ?>
 <h1>Account settings</h1>
+<?php if(!empty($_SESSION['auth_notice'])): ?><div class="alert alert-info"><?=e($_SESSION['auth_notice'])?></div><?php unset($_SESSION['auth_notice']); endif; ?>
 
 <?php if(!empty($error)):?>
 <div class="alert alert-danger"><?=e($error)?></div>
@@ -96,6 +101,17 @@ require '../includes/header.php';
 <?php if(!empty($success)):?>
 <div class="alert alert-success"><?=e($success)?></div>
 <?php endif;?>
+
+<div class="card card-body col-lg-7 mb-4">
+    <h2 class="h5">Google sign-in</h2>
+    <?php if(!empty($u['google_sub'])): ?>
+        <span class="badge text-bg-success align-self-start mb-2">Google account connected</span>
+        <p class="small text-muted mb-0">Your verified Google account is linked to this Choosery login.</p>
+    <?php else: ?>
+        <p class="text-muted">Connect the Google account that uses the same email address as this Choosery account.</p>
+        <a class="btn btn-outline-success align-self-start" href="/auth/google-start.php?mode=link">Connect Google account</a>
+    <?php endif; ?>
+</div>
 
 <div class="row g-4">
     <div class="col-lg-7">
@@ -121,7 +137,7 @@ require '../includes/header.php';
             <form method="post">
                 <input type="hidden" name="csrf" value="<?=e(csrf())?>">
                 <input type="hidden" name="action" value="password">
-                <input class="form-control mb-2" type="password" name="current_password" placeholder="Current password" required>
+                <?php if(!empty($u['password_hash'])): ?><input class="form-control mb-2" type="password" name="current_password" placeholder="Current password" required><?php else: ?><p class="small text-muted">This account currently uses Google sign-in. You can set a password here.</p><?php endif; ?>
                 <input class="form-control mb-2" type="password" name="new_password" placeholder="New password (8+ characters)" required>
                 <input class="form-control mb-3" type="password" name="confirm_password" placeholder="Confirm new password" required>
                 <button class="btn btn-outline-success">Change password</button>
@@ -141,7 +157,7 @@ require '../includes/header.php';
             <form method="post">
                 <input type="hidden" name="csrf" value="<?=e(csrf())?>">
                 <input type="hidden" name="action" value="delete">
-                <input class="form-control mb-2" type="password" name="delete_password" placeholder="Current password" required>
+                <?php if(!empty($u['password_hash'])): ?><input class="form-control mb-2" type="password" name="delete_password" placeholder="Current password" required><?php else: ?><div class="alert alert-warning">Set a password using <a href="/auth/forgot-password.php">password recovery</a> before deleting this account.</div><?php endif; ?>
                 <input class="form-control mb-3" name="delete_confirmation" placeholder="Type DELETE to confirm" required>
                 <button class="btn btn-outline-danger">Delete my account</button>
             </form>
