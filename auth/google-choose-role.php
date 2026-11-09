@@ -80,6 +80,7 @@ require '../includes/header.php';
     </select>
     <label class="form-label" for="google-phone">Phone number <span class="text-muted">(required for sellers)</span></label>
     <input class="form-control mb-3" id="google-phone" type="tel" name="phone" autocomplete="tel" placeholder="e.g. 08012345678 or +2348012345678" value="<?=e($_POST['phone'] ?? '')?>">
+    <p class="small text-muted">By continuing, you agree to our <a href="/terms.php">Terms</a>, <a href="/privacy.php">Privacy Policy</a>, and <a href="/acceptable-use.php">Acceptable Use Policy</a>.</p>
     <button class="btn btn-success">Create Choosery account</button>
 </form>
 <?php require '../includes/footer.php'; ?>
