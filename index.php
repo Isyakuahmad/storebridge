@@ -17,6 +17,7 @@ require 'includes/header.php';
 
         <div class="mt-4">
             <a class="btn btn-success btn-lg px-4" href="/auth/register.php">Create your store</a>
+            <a class="btn btn-outline-success btn-lg px-4 ms-sm-2 mt-2 mt-sm-0" href="/public/products.php">Browse products</a>
             <div class="mt-3 text-muted">
                 Already registered?
                 <a href="/auth/login.php" class="fw-semibold">Log in.</a>
