@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../config/phone.php';
-login_required();
+seller_required();
 
 $s = store();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
