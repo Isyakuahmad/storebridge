@@ -7,6 +7,7 @@ $category = trim((string)($_GET['category'] ?? ''));
 $minRaw = trim((string)($_GET['min_price'] ?? ''));
 $maxRaw = trim((string)($_GET['max_price'] ?? ''));
 $sort = (string)($_GET['sort'] ?? 'newest');
+$location = trim((string)($_GET['location'] ?? ''));
 
 $minPrice = ($minRaw !== '' && is_numeric($minRaw) && (float)$minRaw >= 0) ? (float)$minRaw : null;
 $maxPrice = ($maxRaw !== '' && is_numeric($maxRaw) && (float)$maxRaw >= 0) ? (float)$maxRaw : null;
@@ -31,6 +32,11 @@ if ($search !== '') {
     $term = '%' . $search . '%';
     array_push($params, $term, $term, $term, $term);
 }
+if ($location !== '') {
+    $where[] = "(s.business_city LIKE ? OR s.business_state LIKE ? OR s.business_area LIKE ? OR s.business_country LIKE ?)";
+    $locationTerm = '%' . $location . '%';
+    array_push($params, $locationTerm, $locationTerm, $locationTerm, $locationTerm);
+}
 if ($category !== '') {
     $where[] = "p.category = ?";
     $params[] = $category;
@@ -51,7 +57,7 @@ $orderBy = [
     'name' => 'p.name ASC'
 ][$sort] ?? 'p.created_at DESC, p.id DESC';
 
-$sql = "SELECT p.id,p.name,p.description,p.price,p.category,p.image,s.name AS store_name,s.slug AS store_slug
+$sql = "SELECT p.id,p.name,p.description,p.price,p.category,p.image,s.name AS store_name,s.slug AS store_slug,s.business_city,s.business_state,s.business_country,s.business_area,s.verification_status
         FROM products p
         JOIN stores s ON s.id=p.store_id
         JOIN users u ON u.id=s.user_id
@@ -94,6 +100,10 @@ require '../includes/header.php';
             <input class="form-control" id="max-price" name="max_price" type="number" min="0" step="0.01" value="<?=e($maxRaw)?>" placeholder="Any">
         </div>
         <div class="col-12 col-md-6">
+            <label class="form-label" for="product-location">Seller location</label>
+            <input class="form-control" id="product-location" name="location" value="<?=e($location)?>" placeholder="City, state or country">
+        </div>
+        <div class="col-12 col-md-6">
             <label class="form-label" for="product-sort">Sort results</label>
             <select class="form-select" id="product-sort" name="sort">
                 <option value="newest" <?=$sort === 'newest' ? 'selected' : ''?>>Newest first</option>
@@ -129,7 +139,10 @@ require '../includes/header.php';
                 <div class="small text-muted mb-1"><?=e($product['category'])?></div>
                 <h3 class="h6 mb-2"><?=e($product['name'])?></h3>
                 <div class="fw-semibold mb-2"><?=money($product['price'])?></div>
-                <div class="small text-muted mb-3">By <?=e($product['store_name'])?></div>
+                <div class="small text-muted mb-2">By <?=e($product['store_name'])?></div>
+                <?php $sellerLocation = implode(', ', array_filter([$product['business_city'], $product['business_state'], $product['business_country']])); ?>
+                <?php if ($sellerLocation): ?><div class="small text-muted mb-2"><?=e($sellerLocation)?></div><?php endif; ?>
+                <?php if ($product['verification_status'] === 'verified'): ?><span class="badge text-bg-success align-self-start mb-2">Business profile reviewed</span><?php endif; ?>
                 <a class="btn btn-success btn-sm mt-auto" href="/public/product.php?id=<?=e($product['id'])?>&amp;slug=<?=e($product['store_slug'])?>">View product</a>
             </div>
         </article>
