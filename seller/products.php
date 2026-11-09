@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../config/uploads.php';
-login_required();
+seller_required();
 $s=store();
 if(!$s)go('/seller/store.php');
 
