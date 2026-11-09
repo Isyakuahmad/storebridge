@@ -11,7 +11,7 @@ $q=$pdo->prepare('SELECT * FROM products WHERE id=? AND store_id=?');
 $q->execute([$id,$s['id']]);
 $p=$q->fetch();
 
-if(!$p)exit('Product not found');
+if(!$p){ http_response_code(404); exit('Product not found'); }
 
 if($_SERVER['REQUEST_METHOD']==='POST'){
     csrf_check();
