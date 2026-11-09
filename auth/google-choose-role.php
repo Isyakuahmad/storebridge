@@ -41,9 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $q->execute([$referralCode, 'active']);
                 $referrerId = $q->fetchColumn() ?: null;
             }
-            $randomPassword = bin2hex(random_bytes(32));
             $q = $pdo->prepare('INSERT INTO users(name,email,phone,password_hash,role,google_sub,referred_by_user_id) VALUES(?,?,?,?,?,?,?)');
-            $q->execute([$name, $pending['email'], $phone !== '' ? $phone : null, password_hash($randomPassword, PASSWORD_DEFAULT), $role, $pending['sub'], $referrerId]);
+            $q->execute([$name, $pending['email'], $phone !== '' ? $phone : null, null, $role, $pending['sub'], $referrerId]);
             $newUserId = (int)$pdo->lastInsertId();
             ensure_referral_code($newUserId);
             $pdo->commit();
