@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../config/uploads.php';
-login_required();
+seller_required();
 
 $q=$pdo->prepare('SELECT id,name,email,password_hash,role FROM users WHERE id=?');
 $q->execute([$_SESSION['user_id']]);
