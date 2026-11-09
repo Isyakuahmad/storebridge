@@ -90,6 +90,7 @@ $title='Account settings';
 require '../includes/header.php';
 ?>
 <h1>Account settings</h1>
+<?php if(!empty($_SESSION['auth_notice'])): ?><div class="alert alert-info"><?=e($_SESSION['auth_notice'])?></div><?php unset($_SESSION['auth_notice']); endif; ?>
 
 <?php if(!empty($error)):?>
 <div class="alert alert-danger"><?=e($error)?></div>
