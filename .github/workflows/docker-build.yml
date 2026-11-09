@@ -33,6 +33,7 @@ jobs:
             mariadb:11
           until docker run --rm --link storebridge-db:db mariadb:11 mariadb-admin ping -h db -uroot -proot_dev_password --silent; do sleep 1; done
           docker exec -i storebridge-db mariadb --database=catalogue -uroot -proot_dev_password < database/init.sql
+          docker exec storebridge-db mariadb --database=catalogue -uroot -proot_dev_password -e "SELECT role FROM users WHERE role='buyer' LIMIT 0; SHOW COLUMNS FROM users LIKE 'google_sub'; SHOW COLUMNS FROM users LIKE 'password_hash';"
           docker rm -f storebridge-db
 
   deploy:
