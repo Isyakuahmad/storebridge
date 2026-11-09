@@ -19,6 +19,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $q=$pdo->prepare('DELETE FROM products WHERE id=? AND store_id=?');
             $q->execute([$id,$s['id']]);
 
+            if($q->rowCount()>0){
+                audit_log('seller_product_deleted', 'product', $id, 'Seller deleted own product');
+            }
             if($q->rowCount()>0&&!empty($p['image'])){
                 $path=rtrim($uploadDir,'/\\').DIRECTORY_SEPARATOR.$p['image'];
                 if(is_file($path))@unlink($path);
