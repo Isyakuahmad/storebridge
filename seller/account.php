@@ -46,8 +46,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }elseif($new!==$confirm){
             $error='New passwords do not match.';
         }else{
+            $newHash = password_hash($new,PASSWORD_DEFAULT);
             $q=$pdo->prepare('UPDATE users SET password_hash=? WHERE id=?');
-            $q->execute([password_hash($new,PASSWORD_DEFAULT),$u['id']]);
+            $q->execute([$newHash,$u['id']]);
+            $u['password_hash'] = $newHash;
             $success='Password updated successfully.';
         }
     }elseif($action==='delete'){
