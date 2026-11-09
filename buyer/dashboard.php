@@ -8,6 +8,7 @@ $q = $pdo->prepare('SELECT name,email,google_sub FROM users WHERE id=?');
 $q->execute([$_SESSION['user_id']]);
 $buyer = $q->fetch();
 ?>
+<?php if(!empty($_SESSION['auth_notice'])): ?><div class="alert alert-info"><?=e($_SESSION['auth_notice'])?></div><?php unset($_SESSION['auth_notice']); endif; ?>
 <h1>Welcome to Choosery, <?=e($buyer['name'] ?? 'buyer')?></h1>
 <p class="text-muted">Discover products and shop directly from businesses on Choosery.</p>
 <div class="card card-body col-lg-7 mb-3">
