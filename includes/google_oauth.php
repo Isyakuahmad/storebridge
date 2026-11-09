@@ -95,8 +95,11 @@ function google_verify_id_token($idToken, $expectedNonce) {
     $issuerValid = in_array($claims['iss'] ?? '', ['https://accounts.google.com', 'accounts.google.com'], true);
     if (!$audienceValid || !$issuerValid ||
         (isset($claims['azp']) && !hash_equals(GOOGLE_OAUTH_CLIENT_ID, (string)$claims['azp'])) ||
-        (int)($claims['exp'] ?? 0) <= time() ||
-        (int)($claims['iat'] ?? 0) > time() + 60 ||
+        !isset($claims['exp'], $claims['iat']) ||
+        !is_numeric($claims['exp']) || !is_numeric($claims['iat']) ||
+        (int)$claims['exp'] <= time() ||
+        (int)$claims['iat'] > time() + 60 ||
+        (isset($claims['nbf']) && (int)$claims['nbf'] > time() + 60) ||
         empty($claims['sub']) || empty($claims['email']) ||
         !filter_var($claims['email'], FILTER_VALIDATE_EMAIL) ||
         !in_array($claims['email_verified'] ?? false, [true, 'true', 1, '1'], true) ||
