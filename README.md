@@ -1,10 +1,10 @@
-# StoreBridge
+# Choosery
 
-StoreBridge is a lightweight online storefront for Nigerian small businesses. Sellers can create a store, publish products for review, receive customer orders, and move the conversation to WhatsApp.
+Choosery is a lightweight online storefront for Nigerian small businesses. StoreBridge is the technical project and repository name used internally. Sellers can create a store, publish products for review, receive customer orders, and move the conversation to WhatsApp.
 
 ## What it does
 
-StoreBridge currently provides:
+Choosery currently provides:
 
 - Seller registration and login with normalized email and phone duplicate detection
 - Admin review queue for duplicate registration signals (not automatic fraud decisions)
@@ -65,7 +65,7 @@ Seller accounts can also be suspended. Suspended sellers cannot log in, their st
 
 ## Platform administration
 
-The first StoreBridge owner account must be promoted to the `admin` role after database setup.
+The first Choosery owner account must be promoted to the `admin` role after database setup.
 
 After registering the owner account, run:
 
@@ -170,7 +170,7 @@ Admin access is separate from normal seller access.
 ├── .dockerignore
 ├── .env.example             # Configuration template; contains no secrets
 ├── Dockerfile               # Production image
-└── index.php                # StoreBridge homepage
+└── index.php                # Choosery homepage
 ```
 
 ## Local development with GitHub Codespaces
