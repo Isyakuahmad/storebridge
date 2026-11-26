@@ -18,7 +18,7 @@ require '../includes/header.php';
 ?>
 <div class="mb-4">
     <h1 class="mb-1">Sellers</h1>
-    <p class="text-muted mb-0">Explore products from StoreBridge sellers.</p>
+    <p class="text-muted mb-0">Explore products from Choosery sellers.</p>
 </div>
 
 <div class="row g-3">
