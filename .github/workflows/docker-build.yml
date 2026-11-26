@@ -5,6 +5,7 @@ on:
     branches:
       - portable-docker
       - launch-prep
+      - main
   pull_request:
     branches:
       - main
@@ -38,7 +39,7 @@ jobs:
   deploy:
     name: Deploy to InfinityFree
     needs: docker-build  # 👈 Prevents deployment if tests fail
-    if: github.event_name == 'push' && github.ref == 'refs/heads/launch-prep'  # 👈 Runs ONLY when pushing to launch-prep
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Production deploys only from main
     runs-on: ubuntu-latest
     steps:
       - name: Get latest code
