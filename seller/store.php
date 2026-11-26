@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $q = $pdo->prepare("UPDATE stores SET name=?,slug=?,description=?,whatsapp_number=?,delivery_note=?,business_country=?,business_state=?,business_city=?,business_area=?,business_address=?,verification_status='pending',verification_submitted_at=NOW(),verification_reviewed_by=NULL,verification_reviewed_at=NULL,verification_note=NULL WHERE id=? AND user_id=?");
                 $q->execute([$n,$slug,$description,$w,$deliveryNote,$country,$state,$city,$area ?: null,$address ?: null,$s['id'],$_SESSION['user_id']]);
             } else {
-                $q = $pdo->prepare('INSERT INTO stores(user_id,name,slug,description,whatsapp_number,delivery_note,business_country,business_state,business_city,business_area,business_address,verification_status,verification_submitted_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,NOW())');
+                $q = $pdo->prepare("INSERT INTO stores(user_id,name,slug,description,whatsapp_number,delivery_note,business_country,business_state,business_city,business_area,business_address,verification_status,verification_submitted_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,NOW())");
                 $q->execute([$_SESSION['user_id'],$n,$slug,$description,$w,$deliveryNote,$country,$state,$city,$area ?: null,$address ?: null,'pending']);
             }
             go('/seller/dashboard.php');
