@@ -16,56 +16,65 @@ if ($minPrice !== null && $maxPrice !== null && $minPrice > $maxPrice) {
     [$minRaw, $maxRaw] = [$maxRaw, $minRaw];
 }
 
-$categoryQuery = $pdo->query("SELECT DISTINCT p.category
-    FROM products p
-    JOIN stores s ON s.id=p.store_id
-    JOIN users u ON u.id=s.user_id
-    WHERE p.available=1 AND p.moderation_status='approved'
-      AND u.account_status='active' AND p.category<>''
-    ORDER BY p.category");
-$categories = $categoryQuery->fetchAll(PDO::FETCH_COLUMN);
+$categories = [];
+$products = [];
+$catalogueUnavailable = false;
 
-$where = ["p.available=1", "p.moderation_status='approved'", "u.account_status='active'"];
-$params = [];
-if ($search !== '') {
-    $where[] = "(p.name LIKE ? OR p.description LIKE ? OR p.category LIKE ? OR s.name LIKE ?)";
-    $term = '%' . $search . '%';
-    array_push($params, $term, $term, $term, $term);
-}
-if ($location !== '') {
-    $where[] = "(s.business_city LIKE ? OR s.business_state LIKE ? OR s.business_area LIKE ? OR s.business_country LIKE ?)";
-    $locationTerm = '%' . $location . '%';
-    array_push($params, $locationTerm, $locationTerm, $locationTerm, $locationTerm);
-}
-if ($category !== '') {
-    $where[] = "p.category = ?";
-    $params[] = $category;
-}
-if ($minPrice !== null) {
-    $where[] = "p.price >= ?";
-    $params[] = $minPrice;
-}
-if ($maxPrice !== null) {
-    $where[] = "p.price <= ?";
-    $params[] = $maxPrice;
-}
-
-$orderBy = [
-    'newest' => 'p.created_at DESC, p.id DESC',
-    'price_low' => 'p.price ASC, p.created_at DESC',
-    'price_high' => 'p.price DESC, p.created_at DESC',
-    'name' => 'p.name ASC'
-][$sort] ?? 'p.created_at DESC, p.id DESC';
-
-$sql = "SELECT p.id,p.name,p.description,p.price,p.category,p.image,s.name AS store_name,s.slug AS store_slug,s.business_city,s.business_state,s.business_country,s.business_area,s.verification_status
+try {
+    $categoryQuery = $pdo->query("SELECT DISTINCT p.category
         FROM products p
         JOIN stores s ON s.id=p.store_id
         JOIN users u ON u.id=s.user_id
-        WHERE " . implode(' AND ', $where) . "
-        ORDER BY " . $orderBy . " LIMIT 60";
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$products = $stmt->fetchAll();
+        WHERE p.available=1 AND p.moderation_status='approved'
+          AND u.account_status='active' AND p.category<>''
+        ORDER BY p.category");
+    $categories = $categoryQuery->fetchAll(PDO::FETCH_COLUMN);
+
+    $where = ["p.available=1", "p.moderation_status='approved'", "u.account_status='active'"];
+    $params = [];
+    if ($search !== '') {
+        $where[] = "(p.name LIKE ? OR p.description LIKE ? OR p.category LIKE ? OR s.name LIKE ?)";
+        $term = '%' . $search . '%';
+        array_push($params, $term, $term, $term, $term);
+    }
+    if ($location !== '') {
+        $where[] = "(s.business_city LIKE ? OR s.business_state LIKE ? OR s.business_area LIKE ? OR s.business_country LIKE ?)";
+        $locationTerm = '%' . $location . '%';
+        array_push($params, $locationTerm, $locationTerm, $locationTerm, $locationTerm);
+    }
+    if ($category !== '') {
+        $where[] = "p.category = ?";
+        $params[] = $category;
+    }
+    if ($minPrice !== null) {
+        $where[] = "p.price >= ?";
+        $params[] = $minPrice;
+    }
+    if ($maxPrice !== null) {
+        $where[] = "p.price <= ?";
+        $params[] = $maxPrice;
+    }
+
+    $orderBy = [
+        'newest' => 'p.created_at DESC, p.id DESC',
+        'price_low' => 'p.price ASC, p.created_at DESC',
+        'price_high' => 'p.price DESC, p.created_at DESC',
+        'name' => 'p.name ASC'
+    ][$sort] ?? 'p.created_at DESC, p.id DESC';
+
+    $sql = "SELECT p.id,p.name,p.description,p.price,p.category,p.image,s.name AS store_name,s.slug AS store_slug,s.business_city,s.business_state,s.business_country,s.business_area,s.verification_status
+            FROM products p
+            JOIN stores s ON s.id=p.store_id
+            JOIN users u ON u.id=s.user_id
+            WHERE " . implode(' AND ', $where) . "
+            ORDER BY " . $orderBy . " LIMIT 60";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $products = $stmt->fetchAll();
+} catch (Throwable $ex) {
+    $catalogueUnavailable = true;
+    error_log('Choosery public product catalogue could not be loaded: ' . $ex->getMessage());
+}
 
 $title = 'Explore products';
 require '../includes/header.php';
@@ -119,11 +128,32 @@ require '../includes/header.php';
     </div>
 </form>
 
+<?php if (!$catalogueUnavailable): ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h2 class="h5 mb-0">Available products</h2>
     <span class="small text-muted"><?=count($products)?> result<?=count($products) === 1 ? '' : 's'?><?=count($products) === 60 ? ' · showing first 60' : ''?></span>
 </div>
+<?php endif; ?>
 
+<?php if ($catalogueUnavailable): ?>
+    <section class="storebridge-panel bg-white text-center p-4 p-md-5" role="status">
+        <span class="badge text-bg-warning mb-3">Temporarily unavailable</span>
+        <h2 class="h4">We’re getting the marketplace ready</h2>
+        <p class="text-muted mb-3">The product catalogue is temporarily unavailable. Please try again shortly, or create your own Choosery store while we put things right.</p>
+        <a class="btn btn-success" href="/auth/register.php">Create your store</a>
+    </section>
+<?php elseif (!$products && $search === '' && $category === '' && $location === '' && $minPrice === null && $maxPrice === null): ?>
+    <section class="storebridge-panel bg-white text-center p-4 p-md-5" aria-labelledby="catalogue-empty-title">
+        <div class="display-6 mb-3" aria-hidden="true">🛍️</div>
+        <span class="badge text-bg-success mb-3">New marketplace</span>
+        <h2 class="h4" id="catalogue-empty-title">The catalogue is getting started</h2>
+        <p class="text-muted mx-auto mb-4" style="max-width: 560px;">There are no public products listed just yet. Sellers can create a free store and add approved products here. Check back soon to discover what local businesses are offering.</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+            <a class="btn btn-success" href="/auth/register.php">Create your store</a>
+            <a class="btn btn-outline-success" href="/">Back to home</a>
+        </div>
+    </section>
+<?php else: ?>
 <div class="row g-3">
 <?php foreach ($products as $product): ?>
     <div class="col-6 col-md-4 col-xl-3">
@@ -151,11 +181,12 @@ require '../includes/header.php';
 </div>
 
 <?php if (!$products): ?>
-    <div class="storebridge-panel bg-white text-center p-4 p-md-5 mt-3">
-        <h2 class="h5">No matching products found</h2>
-        <p class="text-muted mb-3">Try another search term, category or price range.</p>
-        <a class="btn btn-outline-success" href="/public/products.php">View all products</a>
+    <div class="storebridge-panel bg-white text-center p-4 mt-3">
+        <h2 class="h5">No products match those filters</h2>
+        <p class="text-muted mb-3">Try a different search term or location, or clear your filters to see all available products.</p>
+        <a class="btn btn-outline-success" href="/public/products.php">Clear filters</a>
     </div>
+<?php endif; ?>
 <?php endif; ?>
 
 <?php require '../includes/footer.php'; ?>
