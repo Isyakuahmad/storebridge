@@ -128,10 +128,12 @@ require '../includes/header.php';
     </div>
 </form>
 
+<?php if (!$catalogueUnavailable): ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h2 class="h5 mb-0">Available products</h2>
     <span class="small text-muted"><?=count($products)?> result<?=count($products) === 1 ? '' : 's'?><?=count($products) === 60 ? ' · showing first 60' : ''?></span>
 </div>
+<?php endif; ?>
 
 <?php if ($catalogueUnavailable): ?>
     <section class="storebridge-panel bg-white text-center p-4 p-md-5" role="status">
