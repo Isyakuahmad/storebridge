@@ -6,7 +6,7 @@ function email_config(){
     $config=[
         'brevo_api_key'=>'',
         'from_email'=>'',
-        'from_name'=>'StoreBridge',
+        'from_name'=>'Choosery',
         'app_url'=>''
     ];
 
@@ -16,6 +16,7 @@ function email_config(){
         if(is_array($localConfig))$config=array_merge($config,$localConfig);
     }
 
+    $config['from_name'] = 'Choosery';
     $config['app_url']=rtrim($config['app_url']?:('https://'.($_SERVER['HTTP_HOST']??'localhost')),'/');
     return $config;
 }
@@ -44,9 +45,9 @@ function send_password_reset_email($toEmail,$toName,$resetUrl){
         'to'=>[
             ['email'=>$toEmail,'name'=>$toName]
         ],
-        'subject'=>'Reset your StoreBridge password',
-        'htmlContent'=>'<p>Hello '.$safeName.',</p><p>We received a request to reset your StoreBridge password.</p><p><a href="'.$safeUrl.'">Reset your password</a></p><p>This link expires in 1 hour and can only be used once.</p><p>If you did not request this, you can ignore this email.</p>',
-        'textContent'=>"Hello ".$toName.",\n\nReset your StoreBridge password:\n".$resetUrl."\n\nThis link expires in 1 hour and can only be used once.\n\nIf you did not request this, you can ignore this email."
+        'subject'=>'Reset your Choosery password',
+        'htmlContent'=>'<p>Hello '.$safeName.',</p><p>We received a request to reset your Choosery password.</p><p><a href="'.$safeUrl.'">Reset your password</a></p><p>This link expires in 1 hour and can only be used once.</p><p>If you did not request this, you can ignore this email.</p>',
+        'textContent'=>"Hello ".$toName.",\n\nReset your Choosery password:\n".$resetUrl."\n\nThis link expires in 1 hour and can only be used once.\n\nIf you did not request this, you can ignore this email."
     ];
 
     $json=json_encode($payload);
