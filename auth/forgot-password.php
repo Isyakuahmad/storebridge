@@ -37,12 +37,12 @@ require '../includes/header.php';
 <h1>Forgot password</h1>
 <?php if($sent):?>
 <div class="alert alert-success">
-    If an active StoreBridge account exists for that email, a password reset link has been sent.
+    If an active Choosery account exists for that email, a password reset link has been sent.
     Please check your inbox and spam folder.
 </div>
 <a class="btn btn-outline-success" href="/auth/login.php">Back to login</a>
 <?php else:?>
-<p class="text-muted">Enter the email address associated with your StoreBridge account.</p>
+<p class="text-muted">Enter the email address associated with your Choosery account.</p>
 <form method="post" class="card card-body col-lg-6">
     <input type="hidden" name="csrf" value="<?=e(csrf())?>">
     <input class="form-control mb-2" type="email" name="email" placeholder="Email" required>
